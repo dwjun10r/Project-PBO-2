@@ -31,7 +31,7 @@ import models.Voucher;
 
 public class SimpleHttpServer {
 
-    private static final int PORT = 8000;
+    private static final int PORT = 8080;
 
     // Instansiasi DAO untuk digunakan di semua handler
     private VillaDAO villaDAO = new VillaDAO();
