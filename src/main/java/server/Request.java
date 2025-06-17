@@ -1,4 +1,4 @@
-package server;
+package server; // Pastikan ini package yang benar
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Request {
-
     private final HttpExchange httpExchange;
     private Headers headers;
     private String rawBody;
+    private Map<String, Object> jsonBodyMap; // Menggunakan Map langsung untuk JSON
 
-    private String jsonBody;
+    private static final ObjectMapper objectMapper = new ObjectMapper(); // Static ObjectMapper
 
     public Request(HttpExchange httpExchange) {
         this.httpExchange = httpExchange;
@@ -35,7 +35,6 @@ public class Request {
                     .lines()
                     .collect(Collectors.joining("\n"));
         }
-
         return this.rawBody;
     }
 
@@ -48,18 +47,21 @@ public class Request {
     }
 
     public Map<String, Object> getJSON() throws JsonProcessingException {
-        if (!getContentType().equalsIgnoreCase("application/json")) {
-            return null;
+        // Hati-hati dengan !getContentType().equalsIgnoreCase("application/json")
+        // Jika body kosong atau tidak ada Content-Type, ini bisa mengembalikan null
+        // Anda mungkin ingin melempar exception atau mengembalikan Map kosong
+        if (this.jsonBodyMap == null) {
+            if (getContentType() != null && getContentType().toLowerCase().contains("application/json")) {
+                String body = getBody();
+                if (body != null && !body.isEmpty()) {
+                    this.jsonBodyMap = objectMapper.readValue(body, new TypeReference<Map<String, Object>>(){});
+                } else {
+                    this.jsonBodyMap = new HashMap<>(); // Body JSON kosong
+                }
+            } else {
+                this.jsonBodyMap = new HashMap<>(); // Bukan JSON, kembalikan Map kosong
+            }
         }
-
-        Map<String, Object> jsonMap = new HashMap<>();
-        if (jsonBody == null) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            jsonMap = objectMapper.readValue(this.getBody(), new TypeReference<>(){});
-        }
-
-        return jsonMap;
+        return this.jsonBodyMap;
     }
-
-
 }
