@@ -178,6 +178,7 @@ public class VillaHandler implements HttpHandler {
 
     private void handleAddVilla(Request req, Response res) throws IOException {
         Map<String, Object> reqJsonMap = req.getJSON();
+
         String name = (String) reqJsonMap.get("name");
         String description = (String) reqJsonMap.get("description");
         String address = (String) reqJsonMap.get("address");
@@ -202,6 +203,7 @@ public class VillaHandler implements HttpHandler {
             return;
         }
         Map<String, Object> reqJsonMap = req.getJSON();
+
         String name = (String) reqJsonMap.get("name");
         Integer quantity = (Integer) reqJsonMap.get("quantity");
         Integer capacity = (Integer) reqJsonMap.get("capacity");
@@ -271,7 +273,7 @@ public class VillaHandler implements HttpHandler {
             try {
                 villaId = Integer.parseInt(matcher.group(1));
                 roomTypeId = Integer.parseInt(matcher.group(2));
-            } catch (NumberFormatException e) { /* handled by -1 defaults */ }
+            } catch (NumberFormatException e) { }
         }
 
         if (villaId == -1 || roomTypeId == -1) {
