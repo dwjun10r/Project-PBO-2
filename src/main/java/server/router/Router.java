@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public class Router implements HttpHandler {
 
     // API Key yang di-hardcode (dari dosen Anda)
-    private static final String API_KEY = "your_secret_api_key"; // GANTI DENGAN API KEY SEBENARNYA
+    private static final String API_KEY = "PBO123"; //
 
     // Instansiasi semua handler Anda di sini
     private final VillaHandler villaHandler = new VillaHandler();
@@ -44,7 +44,8 @@ public class Router implements HttpHandler {
 
         try {
             // Autentikasi API Key
-            String providedApiKey = req.getHeaders().getFirst("X-API-Key"); // Asumsi API Key di header X-API-Key
+            String providedApiKey = req.getHttpExchange().getRequestHeaders()
+                    .getFirst("X-API-Key");
             if (providedApiKey == null || !providedApiKey.equals(API_KEY)) {
                 res.sendError(HttpURLConnection.HTTP_UNAUTHORIZED, "Unauthorized: Invalid API Key");
                 return;
