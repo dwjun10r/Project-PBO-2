@@ -26,6 +26,7 @@ public class CustomerHandler implements HttpHandler {
     private int extractIdFromPath(String path, String regexPattern) {
         Pattern pattern = Pattern.compile(regexPattern);
         Matcher matcher = pattern.matcher(path);
+
         if (matcher.find() && matcher.groupCount() >= 1) {
             try {
                 return Integer.parseInt(matcher.group(1));
@@ -72,9 +73,14 @@ public class CustomerHandler implements HttpHandler {
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for PUT on Customer");
                 }
+            } else if ("DELETE".equals(method)) {
+                if (path.matches("/customers/\\d+")) { // DELETE /customers/{id}
+                    handleDeleteCustomer(req, res);
+                } else {
+                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for DELETE on Customer");
+                }
             } else {
                 res.sendError(405, "Method Not Allowed");
-
             }
         } catch (Exception e) {
             System.err.println("Error in CustomerHandler: " + e.getMessage());
@@ -133,17 +139,19 @@ public class CustomerHandler implements HttpHandler {
             return;
         }
 
+        // Basic email validation
         if (!email.matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid email format");
             return;
         }
 
+        // Basic phone number validation (e.g., starts with +, then digits)
         if (!phone.matches("^\\+?[0-9\\s\\-]+$")) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid phone number format");
             return;
         }
-
         Customer newCustomer = new Customer(0, name, email, phone);
+
         if (customerDAO.addCustomer(newCustomer)) {
             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Customer added successfully");
         } else {
@@ -173,12 +181,12 @@ public class CustomerHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Booking");
             return;
         }
-
         Booking newBooking = new Booking(
                 0, customerId, roomTypeId, checkinDate, checkoutDate,
                 price, voucherId, finalPrice, paymentStatus,
                 hasCheckedIn ? 1 : 0, hasCheckedOut ? 1 : 0
         );
+
         if (bookingDAO.addBooking(newBooking)) {
             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Booking added successfully for customer " + customerId);
         } else {
@@ -189,15 +197,16 @@ public class CustomerHandler implements HttpHandler {
     private void handleAddReviewForBooking(Request req, Response res) throws IOException {
         Pattern pattern = Pattern.compile("/customers/\\d+/bookings/(\\d+)/reviews");
         Matcher matcher = pattern.matcher(req.getHttpExchange().getRequestURI().getPath());
+
         int bookingId = -1;
         if (matcher.find() && matcher.groupCount() == 1) {
             bookingId = Integer.parseInt(matcher.group(1));
         }
+
         if (bookingId == -1) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Booking ID in path");
             return;
         }
-
         Map<String, Object> reqJsonMap = req.getJSON();
         Integer star = (Integer) reqJsonMap.get("star");
         String title = (String) reqJsonMap.get("title");
@@ -207,12 +216,13 @@ public class CustomerHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Review");
             return;
         }
+
         if (star < 1 || star > 5) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Star rating must be between 1 and 5");
             return;
         }
-
         Review newReview = new Review(bookingId, star, title, content);
+
         if (reviewDAO.addReview(newReview)) {
             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Review added successfully for booking " + bookingId);
         } else {
@@ -235,21 +245,37 @@ public class CustomerHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Customer update");
             return;
         }
+
         if (!email.matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid email format");
             return;
         }
+
         if (!phone.matches("^\\+?[0-9\\s\\-]+$")) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid phone number format");
             return;
         }
-
         Customer updatedCustomer = new Customer(id, name, email, phone);
+
         if (customerDAO.updateCustomer(updatedCustomer)) {
             res.sendSuccess(HttpURLConnection.HTTP_OK, "Customer updated successfully");
         } else {
             res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Customer not found or failed to update");
         }
     }
-}
 
+    private void handleDeleteCustomer(Request req, Response res) throws IOException {
+        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), "/customers/(\\d+)");
+
+        if (id == -1) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
+            return;
+        }
+
+        if (customerDAO.deleteCustomer(id)) {
+            res.sendSuccess(HttpURLConnection.HTTP_OK, "Customer deleted successfully");
+        } else {
+            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Customer not found or failed to delete");
+        }
+    }
+}
