@@ -21,13 +21,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VillaHandler implements HttpHandler {
-    // Instansiasi DAO hanya sekali per handler
+
     private final VillaDAO villaDAO = new VillaDAO();
     private final RoomTypeDAO roomTypeDAO = new RoomTypeDAO();
     private final BookingDAO bookingDAO = new BookingDAO();
     private final ReviewDAO reviewDAO = new ReviewDAO();
 
-    // Utility method untuk extract ID dari path (bisa di Router atau Utility class terpisah)
     private int extractIdFromPath(String path, String regexPattern) {
         Pattern pattern = Pattern.compile(regexPattern);
         Matcher matcher = pattern.matcher(path);
@@ -41,7 +40,6 @@ public class VillaHandler implements HttpHandler {
         return -1;
     }
 
-    // Utility method untuk parse query parameters
     private Map<String, String> parseQueryParams(java.net.URI uri) {
         String query = uri.getQuery();
         if (query == null || query.isEmpty()) {
@@ -64,7 +62,7 @@ public class VillaHandler implements HttpHandler {
         try {
             if ("GET".equals(method)) {
                 if (path.equals("/villas")) {
-                    if (query != null && query.contains("ci_date") && query.contains("co_date")) { // GET /villas?ci_date=...&co_date=...
+                    if (query != null && query.contains("ci_date") && query.contains("co_date")) {
                         handleSearchVillasByAvailability(req, res);
                     } else { // GET /villas
                         handleGetAllVillas(res);
@@ -105,7 +103,8 @@ public class VillaHandler implements HttpHandler {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for DELETE on Villa");
                 }
             } else {
-                res.sendError(HttpURLConnection.HTTP_METHOD_NOT_ALLOWED, "Method Not Allowed");
+                res.sendError(405, "Method Not Allowed");
+
             }
         } catch (Exception e) {
             System.err.println("Error in VillaHandler: " + e.getMessage());
@@ -173,14 +172,12 @@ public class VillaHandler implements HttpHandler {
             return;
         }
 
-        // TODO: Add date format validation (YYYY-MM-DD hh:mm:ss)
         List<Villa> availableVillas = villaDAO.searchVillasByAvailability(checkinDate, checkoutDate);
         res.sendJson(HttpURLConnection.HTTP_OK, availableVillas);
     }
 
     private void handleAddVilla(Request req, Response res) throws IOException {
         Map<String, Object> reqJsonMap = req.getJSON();
-        // Validasi keberadaan field
         String name = (String) reqJsonMap.get("name");
         String description = (String) reqJsonMap.get("description");
         String address = (String) reqJsonMap.get("address");
@@ -205,7 +202,6 @@ public class VillaHandler implements HttpHandler {
             return;
         }
         Map<String, Object> reqJsonMap = req.getJSON();
-        // Validasi keberadaan field
         String name = (String) reqJsonMap.get("name");
         Integer quantity = (Integer) reqJsonMap.get("quantity");
         Integer capacity = (Integer) reqJsonMap.get("capacity");
@@ -346,3 +342,4 @@ public class VillaHandler implements HttpHandler {
         }
     }
 }
+

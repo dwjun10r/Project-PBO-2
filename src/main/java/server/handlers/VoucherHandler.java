@@ -1,11 +1,11 @@
-package server.handlers; // Sesuaikan dengan struktur package Anda
+package server.handlers;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dao.VoucherDAO; // Pastikan import ini benar
+import dao.VoucherDAO;
 import models.Voucher;
-import server.Request; // Pastikan import ini benar
-import server.Response; // Pastikan import ini benar
+import server.Request;
+import server.Response;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -65,7 +65,8 @@ public class VoucherHandler implements HttpHandler {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for DELETE on Voucher");
                 }
             } else {
-                res.sendError(HttpURLConnection.HTTP_METHOD_NOT_ALLOWED, "Method Not Allowed");
+                res.sendError(405, "Method Not Allowed");
+
             }
         } catch (Exception e) {
             System.err.println("Error in VoucherHandler: " + e.getMessage());
@@ -165,3 +166,4 @@ public class VoucherHandler implements HttpHandler {
         }
     }
 }
+

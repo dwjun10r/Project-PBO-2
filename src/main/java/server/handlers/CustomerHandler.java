@@ -1,4 +1,4 @@
-package server.handlers; // Sesuaikan dengan struktur package Anda
+package server.handlers;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -73,7 +73,8 @@ public class CustomerHandler implements HttpHandler {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for PUT on Customer");
                 }
             } else {
-                res.sendError(HttpURLConnection.HTTP_METHOD_NOT_ALLOWED, "Method Not Allowed");
+                res.sendError(405, "Method Not Allowed");
+
             }
         } catch (Exception e) {
             System.err.println("Error in CustomerHandler: " + e.getMessage());
@@ -131,12 +132,12 @@ public class CustomerHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields (name, email, phone)");
             return;
         }
-        // Basic email validation
+
         if (!email.matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid email format");
             return;
         }
-        // Basic phone number validation (e.g., starts with +, then digits)
+
         if (!phone.matches("^\\+?[0-9\\s\\-]+$")) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid phone number format");
             return;
@@ -251,3 +252,4 @@ public class CustomerHandler implements HttpHandler {
         }
     }
 }
+

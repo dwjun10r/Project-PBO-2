@@ -16,7 +16,6 @@ public class BookingDAO {
     // -------------- Endpoint baru: Daftar semua booking pada suatu vila (GET /villas/{id}/bookings) --------------
     public List<Booking> getBookingsByVillaId(int villaId) {
         List<Booking> bookings = new ArrayList<>();
-        // Query ini melakukan JOIN antara bookings dan room_types untuk menemukan booking berdasarkan villa ID
         String sql = "SELECT b.* FROM bookings b JOIN room_types rt ON b.room_type = rt.id WHERE rt.villa = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
