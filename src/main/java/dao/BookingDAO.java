@@ -11,9 +11,9 @@ import java.util.List;
 
 public class BookingDAO {
 
+    // Metode yang sudah ada: addBooking, getBookingById
 
-
-
+    // -------------- Endpoint baru: Daftar semua booking pada suatu vila (GET /villas/{id}/bookings) --------------
     public List<Booking> getBookingsByVillaId(int villaId) {
         List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT b.* FROM bookings b JOIN room_types rt ON b.room_type = rt.id WHERE rt.villa = ?";
@@ -30,7 +30,7 @@ public class BookingDAO {
                         rs.getString("checkin_date"),
                         rs.getString("checkout_date"),
                         rs.getInt("price"),
-                        rs.getObject("voucher", Integer.class),
+                        rs.getObject("voucher", Integer.class), // Handle nullable voucher
                         rs.getInt("final_price"),
                         rs.getString("payment_status"),
                         rs.getInt("has_checkedin"),
@@ -43,7 +43,7 @@ public class BookingDAO {
         return bookings;
     }
 
-
+    // -------------- Endpoint baru: Daftar booking yang telah dilakukan oleh seorang customer (GET /customers/{id}/bookings) --------------
     public List<Booking> getBookingsByCustomerId(int customerId) {
         List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT * FROM bookings WHERE customer = ?";
@@ -60,7 +60,7 @@ public class BookingDAO {
                         rs.getString("checkin_date"),
                         rs.getString("checkout_date"),
                         rs.getInt("price"),
-                        rs.getObject("voucher", Integer.class),
+                        rs.getObject("voucher", Integer.class), // Handle nullable voucher
                         rs.getInt("final_price"),
                         rs.getString("payment_status"),
                         rs.getInt("has_checkedin"),
@@ -73,7 +73,7 @@ public class BookingDAO {
         return bookings;
     }
 
-
+    // -------------- Metode yang sudah ada (disertakan kembali untuk kelengkapan) --------------
     public boolean addBooking(Booking booking) { /* ... kode Anda ... */
         String sql = "INSERT INTO bookings(customer, room_type, checkin_date, checkout_date, " +
                 "price, voucher, final_price, payment_status, has_checkedin, has_checkedout) " +
