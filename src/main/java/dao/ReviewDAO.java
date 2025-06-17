@@ -53,7 +53,7 @@ public class ReviewDAO {
         }
     }
 
-    public List<Review> getReviewsByVillaId(int villaId) { /* ... kode Anda ... */
+    public List<Review> getReviewsByVillaId(int villaId) {
         List<Review> reviews = new ArrayList<>();
         String sql = "SELECT r.* FROM reviews r " +
                 "JOIN bookings b ON r.booking = b.id " +
@@ -78,7 +78,7 @@ public class ReviewDAO {
         return reviews;
     }
 
-    public List<Review> getReviewsByCustomerId(int customerId) { /* ... kode Anda ... */
+    public List<Review> getReviewsByCustomerId(int customerId) {
         List<Review> reviews = new ArrayList<>();
         String sql = "SELECT r.* FROM reviews r JOIN bookings b ON r.booking = b.id WHERE b.customer = ?";
         try (Connection conn = DbConnection.connect();

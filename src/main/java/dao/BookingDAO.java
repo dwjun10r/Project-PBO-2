@@ -102,7 +102,7 @@ public class BookingDAO {
         }
     }
 
-    public Booking getBookingById(int id) { /* ... kode Anda ... */
+    public Booking getBookingById(int id) {
         String sql = "SELECT * FROM bookings WHERE id = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

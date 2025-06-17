@@ -58,7 +58,7 @@ public class VillaDAO {
     }
 
     // -------------- Metode yang sudah ada (disertakan kembali untuk kelengkapan) --------------
-    public List<Villa> getAllVillas() { /* ... kode Anda ... */
+    public List<Villa> getAllVillas() {
         List<Villa> villas = new ArrayList<>();
         String sql = "SELECT * FROM villas";
         try (Connection conn = DbConnection.connect();
@@ -79,7 +79,7 @@ public class VillaDAO {
         return villas;
     }
 
-    public Villa getVillaById(int id) { /* ... kode Anda ... */
+    public Villa getVillaById(int id) {
         String sql = "SELECT * FROM villas WHERE id = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -100,7 +100,7 @@ public class VillaDAO {
         return null;
     }
 
-    public boolean addVilla(Villa villa) { /* ... kode Anda ... */
+    public boolean addVilla(Villa villa) {
         String sql = "INSERT INTO villas(name, description, address) VALUES(?,?,?)";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -115,7 +115,7 @@ public class VillaDAO {
         }
     }
 
-    public boolean updateVilla(Villa villa) { /* ... kode Anda ... */
+    public boolean updateVilla(Villa villa) {
         String sql = "UPDATE villas SET name = ?, description = ?, address = ? WHERE id = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -131,7 +131,7 @@ public class VillaDAO {
         }
     }
 
-    public boolean deleteVilla(int id) { /* ... kode Anda ... */
+    public boolean deleteVilla(int id) {
         String sql = "DELETE FROM villas WHERE id = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

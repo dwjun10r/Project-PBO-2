@@ -6,8 +6,6 @@ public class Review {
     private String title;  // NOT NULL
     private String content; // NOT NULL
 
-    // Constructor untuk membuat Review baru (tanpa bookingId, karena itu PK dan Fk)
-    // Atau bisa juga disertakan jika bookingId akan di-set secara manual
     public Review(int bookingId, int star, String title, String content) {
         this.bookingId = bookingId;
         this.star = star;
@@ -32,7 +30,7 @@ public class Review {
         return content;
     }
 
-    // Setters (bookingId biasanya tidak diset setelah dibuat karena PK/FK)
+    // Setters
     public void setBookingId(int bookingId) {
         this.bookingId = bookingId;
     }

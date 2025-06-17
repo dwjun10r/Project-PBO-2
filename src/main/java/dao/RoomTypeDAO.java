@@ -56,7 +56,7 @@ public class RoomTypeDAO {
     }
 
     // -------------- Metode yang sudah ada (disertakan kembali untuk kelengkapan) --------------
-    public List<RoomType> getRoomTypesByVillaId(int villaId) { /* ... kode Anda ... */
+    public List<RoomType> getRoomTypesByVillaId(int villaId) {
         List<RoomType> roomTypes = new ArrayList<>();
         String sql = "SELECT * FROM room_types WHERE villa = ?";
         try (Connection conn = DbConnection.connect();
@@ -88,7 +88,7 @@ public class RoomTypeDAO {
         return roomTypes;
     }
 
-    public RoomType getRoomTypeById(int id) { /* ... kode Anda ... */
+    public RoomType getRoomTypeById(int id) {
         String sql = "SELECT * FROM room_types WHERE id = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -119,7 +119,7 @@ public class RoomTypeDAO {
         return null;
     }
 
-    public boolean addRoomType(RoomType roomType) { /* ... kode Anda ... */
+    public boolean addRoomType(RoomType roomType) {
         String sql = "INSERT INTO room_types(villa, name, quantity, capacity, price, bed_size, " +
                 "has_desk, has_ac, has_tv, has_wifi, has_shower, has_hotwater, has_fridge) " +
                 "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)";
