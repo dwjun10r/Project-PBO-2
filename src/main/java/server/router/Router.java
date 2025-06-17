@@ -1,10 +1,13 @@
-package server.router; // Sesuaikan dengan struktur package Anda
+
+package server.router;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import server.Request;
 import server.Response;
-import server.handlers.*; // Import semua handler Anda yang akan dibuat
+import server.handlers.CustomerHandler;
+import server.handlers.VillaHandler;
+import server.handlers.VoucherHandler;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

@@ -1,6 +1,6 @@
-package server; // Pastikan package ini sesuai
+package server;
 
-import config.DbConnection; // Import DbConnection
+import config.DbConnection;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;

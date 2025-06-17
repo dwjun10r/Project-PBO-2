@@ -2,14 +2,14 @@ package server.handlers; // Sesuaikan dengan struktur package Anda
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dao.BookingDAO; // Pastikan import ini benar
+import dao.BookingDAO;
 import dao.CustomerDAO;
 import dao.ReviewDAO;
 import models.Booking;
 import models.Customer;
 import models.Review;
-import server.Request; // Pastikan import ini benar
-import server.Response; // Pastikan import ini benar
+import server.Request;
+import server.Response;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

@@ -1,4 +1,5 @@
-package server; // Pastikan ini package yang benar
+package server;
+
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -36,6 +37,10 @@ public class Request {
                     .collect(Collectors.joining("\n"));
         }
         return this.rawBody;
+    }
+
+    public HttpExchange getHttpExchange() {
+        return this.httpExchange;
     }
 
     public String getRequestMethod() {
