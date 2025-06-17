@@ -105,6 +105,3 @@ public class VillaService {
         return villaDAO.deleteVilla(id);
     }
 }
-
-}
-
