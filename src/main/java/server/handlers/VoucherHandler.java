@@ -2,10 +2,10 @@ package server.handlers;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dao.VoucherDAO;
 import models.Voucher;
 import server.Request;
 import server.Response;
+import services.VoucherService; // Import service baru
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -15,7 +15,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VoucherHandler implements HttpHandler {
-    private final VoucherDAO voucherDAO = new VoucherDAO();
+
+    private final VoucherService voucherService;
+
+    public VoucherHandler(VoucherService voucherService) {
+        this.voucherService = voucherService;
+    }
 
     private int extractIdFromPath(String path, String regexPattern) {
         Pattern pattern = Pattern.compile(regexPattern);
@@ -39,34 +44,33 @@ public class VoucherHandler implements HttpHandler {
 
         try {
             if ("GET".equals(method)) {
-                if (path.equals("/vouchers")) { // GET /vouchers
+                if (path.equals("/vouchers")) {
                     handleGetAllVouchers(res);
-                } else if (path.matches("/vouchers/\\d+")) { // GET /vouchers/{id}
+                } else if (path.matches("/vouchers/\\d+")) {
                     handleGetVoucherById(req, res);
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for GET on Voucher");
                 }
             } else if ("POST".equals(method)) {
-                if (path.equals("/vouchers")) { // POST /vouchers
+                if (path.equals("/vouchers")) {
                     handleAddVoucher(req, res);
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for POST on Voucher");
                 }
             } else if ("PUT".equals(method)) {
-                if (path.matches("/vouchers/\\d+")) { // PUT /vouchers/{id}
+                if (path.matches("/vouchers/\\d+")) {
                     handleUpdateVoucher(req, res);
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for PUT on Voucher");
                 }
             } else if ("DELETE".equals(method)) {
-                if (path.matches("/vouchers/\\d+")) { // DELETE /vouchers/{id}
+                if (path.matches("/vouchers/\\d+")) {
                     handleDeleteVoucher(req, res);
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for DELETE on Voucher");
                 }
             } else {
                 res.sendError(405, "Method Not Allowed");
-
             }
         } catch (Exception e) {
             System.err.println("Error in VoucherHandler: " + e.getMessage());
@@ -76,7 +80,7 @@ public class VoucherHandler implements HttpHandler {
     }
 
     private void handleGetAllVouchers(Response res) throws IOException {
-        List<Voucher> vouchers = voucherDAO.getAllVouchers();
+        List<Voucher> vouchers = voucherService.getAllVouchers();
         res.sendJson(HttpURLConnection.HTTP_OK, vouchers);
     }
 
@@ -86,7 +90,7 @@ public class VoucherHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Voucher ID");
             return;
         }
-        Voucher voucher = voucherDAO.getVoucherById(id);
+        Voucher voucher = voucherService.getVoucherById(id);
         if (voucher != null) {
             res.sendJson(HttpURLConnection.HTTP_OK, voucher);
         } else {
@@ -102,22 +106,12 @@ public class VoucherHandler implements HttpHandler {
         String startDate = (String) reqJsonMap.get("startDate");
         String endDate = (String) reqJsonMap.get("endDate");
 
-        if (code == null || code.isEmpty() || description == null || description.isEmpty() || discount == null ||
-                startDate == null || startDate.isEmpty() || endDate == null || endDate.isEmpty()) {
-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Voucher");
-            return;
-        }
-        Pattern dateFormat = Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
-        if (!dateFormat.matcher(startDate).matches() || !dateFormat.matcher(endDate).matches()) {
-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid date format. Use YYYY-MM-DD hh:mm:ss");
-            return;
-        }
-
         Voucher newVoucher = new Voucher(code, description, discount, startDate, endDate);
-        if (voucherDAO.addVoucher(newVoucher)) {
+
+        if (voucherService.addVoucher(newVoucher)) {
             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Voucher added successfully");
         } else {
-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add voucher or invalid data");
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add voucher. Check provided data and date format.");
         }
     }
 
@@ -134,22 +128,16 @@ public class VoucherHandler implements HttpHandler {
         String startDate = (String) reqJsonMap.get("startDate");
         String endDate = (String) reqJsonMap.get("endDate");
 
-        if (code == null || code.isEmpty() || description == null || description.isEmpty() || discount == null ||
-                startDate == null || startDate.isEmpty() || endDate == null || endDate.isEmpty()) {
-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Voucher update");
-            return;
-        }
-        Pattern dateFormat = Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
-        if (!dateFormat.matcher(startDate).matches() || !dateFormat.matcher(endDate).matches()) {
-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid date format. Use YYYY-MM-DD hh:mm:ss");
-            return;
-        }
-
         Voucher updatedVoucher = new Voucher(id, code, description, discount, startDate, endDate);
-        if (voucherDAO.updateVoucher(updatedVoucher)) {
+
+        if (voucherService.updateVoucher(updatedVoucher)) {
             res.sendSuccess(HttpURLConnection.HTTP_OK, "Voucher updated successfully");
         } else {
-            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Voucher not found or failed to update");
+            if (voucherService.getVoucherById(id) == null) {
+                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Voucher not found");
+            } else {
+                res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to update voucher. Check provided data and date format.");
+            }
         }
     }
 
@@ -159,7 +147,8 @@ public class VoucherHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Voucher ID");
             return;
         }
-        if (voucherDAO.deleteVoucher(id)) {
+
+        if (voucherService.deleteVoucher(id)) {
             res.sendSuccess(HttpURLConnection.HTTP_OK, "Voucher deleted successfully");
         } else {
             res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Voucher not found or failed to delete");
