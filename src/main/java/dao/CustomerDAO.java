@@ -6,14 +6,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList; // Tambahkan import ini
-import java.util.List;    // Tambahkan import ini
+import java.util.ArrayList;
+import java.util.List;
 
 public class CustomerDAO {
 
-    // Metode yang sudah ada: addCustomer, getCustomerById
 
-    // -------------- Endpoint baru: Mengambil daftar semua customer (GET /customers) --------------
+
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
         String sql = "SELECT * FROM customers";
@@ -35,7 +34,7 @@ public class CustomerDAO {
         return customers;
     }
 
-    // -------------- Endpoint baru: Mengubah data seorang customer (PUT /customers/{id}) --------------
+
     public boolean updateCustomer(Customer customer) {
         String sql = "UPDATE customers SET name = ?, email = ?, phone = ? WHERE id = ?";
         try (Connection conn = DbConnection.connect();
@@ -52,8 +51,8 @@ public class CustomerDAO {
         }
     }
 
-    // -------------- Metode yang sudah ada (disertakan kembali untuk kelengkapan) --------------
-    public boolean addCustomer(Customer customer) { /* ... kode Anda ... */
+
+    public boolean addCustomer(Customer customer) {
         String sql = "INSERT INTO customers(name, email, phone) VALUES(?,?,?)";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -68,7 +67,7 @@ public class CustomerDAO {
         }
     }
 
-    public Customer getCustomerById(int id) { /* ... kode Anda ... */
+    public Customer getCustomerById(int id) {
         String sql = "SELECT * FROM customers WHERE id = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -87,5 +86,61 @@ public class CustomerDAO {
             System.err.println("Error getting customer by ID: " + e.getMessage());
         }
         return null;
+    }
+
+
+    public boolean deleteCustomer(int id) {
+        Connection conn = null;
+        try {
+            conn = DbConnection.connect();
+            conn.setAutoCommit(false);
+
+
+            String deleteReviewsSql = "DELETE FROM reviews WHERE booking IN (SELECT id FROM bookings WHERE customer = ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteReviewsSql)) {
+                pstmt.setInt(1, id);
+                pstmt.executeUpdate();
+            }
+
+
+            String deleteBookingsSql = "DELETE FROM bookings WHERE customer = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteBookingsSql)) {
+                pstmt.setInt(1, id);
+                pstmt.executeUpdate();
+            }
+
+
+            String deleteCustomerSql = "DELETE FROM customers WHERE id = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteCustomerSql)) {
+                pstmt.setInt(1, id);
+                int affectedRows = pstmt.executeUpdate();
+                if (affectedRows == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error deleting customer: " + e.getMessage());
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    System.err.println("Error during rollback: " + ex.getMessage());
+                }
+            }
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    System.err.println("Error closing connection: " + e.getMessage());
+                }
+            }
+        }
     }
 }
