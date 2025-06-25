@@ -1,0 +1,1337 @@
+Index: src/main/java/server/MainApp.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package server;\r\n\r\nimport config.DbConnection;\r\nimport java.sql.Connection;\r\nimport java.sql.ResultSet;\r\nimport java.sql.Statement;\r\n\r\npublic class MainApp {\r\n    public static void main(String[] args) throws Exception {\r\n        int port = 8080; // Default port\r\n        if (args.length == 1) {\r\n            port = Integer.parseInt(args[0]);\r\n        }\r\n\r\n        // Optional: Kode untuk cek koneksi atau tabel\r\n        try (Connection conn = DbConnection.connect()) {\r\n            if (conn != null) {\r\n                Statement stmt = conn.createStatement();\r\n                ResultSet rs = stmt.executeQuery(\"SELECT name FROM sqlite_master WHERE type='table';\");\r\n                System.out.println(\"Daftar tabel di villa.db:\");\r\n                while (rs.next()) {\r\n                    System.out.println(rs.getString(\"name\"));\r\n                }\r\n            }\r\n        } catch (Exception e) {\r\n            System.err.println(\"Terjadi kesalahan saat memeriksa database: \" + e.getMessage());\r\n        }\r\n\r\n        System.out.printf(\"Listening on port: %s...\\n\", port);\r\n        new Server(port); // Memulai server dari kelas Server baru\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/server/MainApp.java b/src/main/java/server/MainApp.java
+--- a/src/main/java/server/MainApp.java	(revision 0e48c44875f91e44224bcf98f5cb5405506bf46d)
++++ b/src/main/java/server/MainApp.java	(date 1750820168933)
+@@ -7,12 +7,12 @@
+ 
+ public class MainApp {
+     public static void main(String[] args) throws Exception {
+-        int port = 8080; // Default port
++        int port = 8080; // Port
+         if (args.length == 1) {
+             port = Integer.parseInt(args[0]);
+         }
+ 
+-        // Optional: Kode untuk cek koneksi atau tabel
++        // -----------------Kode untuk cek koneksi atau tabel-----------------
+         try (Connection conn = DbConnection.connect()) {
+             if (conn != null) {
+                 Statement stmt = conn.createStatement();
+@@ -27,6 +27,6 @@
+         }
+ 
+         System.out.printf("Listening on port: %s...\n", port);
+-        new Server(port); // Memulai server dari kelas Server baru
++        new Server(port);
+     }
+ }
+\ No newline at end of file
+Index: src/main/java/server/handlers/VoucherHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package server.handlers;\r\n\r\nimport com.sun.net.httpserver.HttpExchange;\r\nimport com.sun.net.httpserver.HttpHandler;\r\nimport dao.VoucherDAO;\r\nimport models.Voucher;\r\nimport server.Request;\r\nimport server.Response;\r\n\r\nimport java.io.IOException;\r\nimport java.net.HttpURLConnection;\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.regex.Matcher;\r\nimport java.util.regex.Pattern;\r\n\r\npublic class VoucherHandler implements HttpHandler {\r\n    private final VoucherDAO voucherDAO = new VoucherDAO();\r\n\r\n    private int extractIdFromPath(String path, String regexPattern) {\r\n        Pattern pattern = Pattern.compile(regexPattern);\r\n        Matcher matcher = pattern.matcher(path);\r\n        if (matcher.find() && matcher.groupCount() >= 1) {\r\n            try {\r\n                return Integer.parseInt(matcher.group(1));\r\n            } catch (NumberFormatException e) {\r\n                return -1;\r\n            }\r\n        }\r\n        return -1;\r\n    }\r\n\r\n    @Override\r\n    public void handle(HttpExchange httpExchange) throws IOException {\r\n        Request req = new Request(httpExchange);\r\n        Response res = new Response(httpExchange);\r\n        String path = httpExchange.getRequestURI().getPath();\r\n        String method = req.getRequestMethod();\r\n\r\n        try {\r\n            if (\"GET\".equals(method)) {\r\n                if (path.equals(\"/vouchers\")) { // GET /vouchers\r\n                    handleGetAllVouchers(res);\r\n                } else if (path.matches(\"/vouchers/\\\\d+\")) { // GET /vouchers/{id}\r\n                    handleGetVoucherById(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for GET on Voucher\");\r\n                }\r\n            } else if (\"POST\".equals(method)) {\r\n                if (path.equals(\"/vouchers\")) { // POST /vouchers\r\n                    handleAddVoucher(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for POST on Voucher\");\r\n                }\r\n            } else if (\"PUT\".equals(method)) {\r\n                if (path.matches(\"/vouchers/\\\\d+\")) { // PUT /vouchers/{id}\r\n                    handleUpdateVoucher(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for PUT on Voucher\");\r\n                }\r\n            } else if (\"DELETE\".equals(method)) {\r\n                if (path.matches(\"/vouchers/\\\\d+\")) { // DELETE /vouchers/{id}\r\n                    handleDeleteVoucher(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for DELETE on Voucher\");\r\n                }\r\n            } else {\r\n                res.sendError(405, \"Method Not Allowed\");\r\n\r\n            }\r\n        } catch (Exception e) {\r\n            System.err.println(\"Error in VoucherHandler: \" + e.getMessage());\r\n            e.printStackTrace();\r\n            res.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, \"Internal Server Error: \" + e.getMessage());\r\n        }\r\n    }\r\n\r\n    private void handleGetAllVouchers(Response res) throws IOException {\r\n        List<Voucher> vouchers = voucherDAO.getAllVouchers();\r\n        res.sendJson(HttpURLConnection.HTTP_OK, vouchers);\r\n    }\r\n\r\n    private void handleGetVoucherById(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/vouchers/(\\\\d+)\");\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Voucher ID\");\r\n            return;\r\n        }\r\n        Voucher voucher = voucherDAO.getVoucherById(id);\r\n        if (voucher != null) {\r\n            res.sendJson(HttpURLConnection.HTTP_OK, voucher);\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Voucher not found\");\r\n        }\r\n    }\r\n\r\n    private void handleAddVoucher(Request req, Response res) throws IOException {\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n        String code = (String) reqJsonMap.get(\"code\");\r\n        String description = (String) reqJsonMap.get(\"description\");\r\n        Double discount = (Double) reqJsonMap.get(\"discount\");\r\n        String startDate = (String) reqJsonMap.get(\"startDate\");\r\n        String endDate = (String) reqJsonMap.get(\"endDate\");\r\n\r\n        if (code == null || code.isEmpty() || description == null || description.isEmpty() || discount == null ||\r\n                startDate == null || startDate.isEmpty() || endDate == null || endDate.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields for Voucher\");\r\n            return;\r\n        }\r\n        Pattern dateFormat = Pattern.compile(\"\\\\d{4}-\\\\d{2}-\\\\d{2} \\\\d{2}:\\\\d{2}:\\\\d{2}\");\r\n        if (!dateFormat.matcher(startDate).matches() || !dateFormat.matcher(endDate).matches()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid date format. Use YYYY-MM-DD hh:mm:ss\");\r\n            return;\r\n        }\r\n\r\n        Voucher newVoucher = new Voucher(code, description, discount, startDate, endDate);\r\n        if (voucherDAO.addVoucher(newVoucher)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_CREATED, \"Voucher added successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Failed to add voucher or invalid data\");\r\n        }\r\n    }\r\n\r\n    private void handleUpdateVoucher(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/vouchers/(\\\\d+)\");\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Voucher ID\");\r\n            return;\r\n        }\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n        String code = (String) reqJsonMap.get(\"code\");\r\n        String description = (String) reqJsonMap.get(\"description\");\r\n        Double discount = (Double) reqJsonMap.get(\"discount\");\r\n        String startDate = (String) reqJsonMap.get(\"startDate\");\r\n        String endDate = (String) reqJsonMap.get(\"endDate\");\r\n\r\n        if (code == null || code.isEmpty() || description == null || description.isEmpty() || discount == null ||\r\n                startDate == null || startDate.isEmpty() || endDate == null || endDate.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields for Voucher update\");\r\n            return;\r\n        }\r\n        Pattern dateFormat = Pattern.compile(\"\\\\d{4}-\\\\d{2}-\\\\d{2} \\\\d{2}:\\\\d{2}:\\\\d{2}\");\r\n        if (!dateFormat.matcher(startDate).matches() || !dateFormat.matcher(endDate).matches()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid date format. Use YYYY-MM-DD hh:mm:ss\");\r\n            return;\r\n        }\r\n\r\n        Voucher updatedVoucher = new Voucher(id, code, description, discount, startDate, endDate);\r\n        if (voucherDAO.updateVoucher(updatedVoucher)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_OK, \"Voucher updated successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Voucher not found or failed to update\");\r\n        }\r\n    }\r\n\r\n    private void handleDeleteVoucher(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/vouchers/(\\\\d+)\");\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Voucher ID\");\r\n            return;\r\n        }\r\n        if (voucherDAO.deleteVoucher(id)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_OK, \"Voucher deleted successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Voucher not found or failed to delete\");\r\n        }\r\n    }\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/server/handlers/VoucherHandler.java b/src/main/java/server/handlers/VoucherHandler.java
+--- a/src/main/java/server/handlers/VoucherHandler.java	(revision 0e48c44875f91e44224bcf98f5cb5405506bf46d)
++++ b/src/main/java/server/handlers/VoucherHandler.java	(date 1750177523682)
+@@ -2,10 +2,10 @@
+ 
+ import com.sun.net.httpserver.HttpExchange;
+ import com.sun.net.httpserver.HttpHandler;
+-import dao.VoucherDAO;
+ import models.Voucher;
+ import server.Request;
+ import server.Response;
++import services.VoucherService; // Import service baru
+ 
+ import java.io.IOException;
+ import java.net.HttpURLConnection;
+@@ -15,9 +15,15 @@
+ import java.util.regex.Pattern;
+ 
+ public class VoucherHandler implements HttpHandler {
+-    private final VoucherDAO voucherDAO = new VoucherDAO();
++
++    private final VoucherService voucherService; // Ganti DAO dengan Service
+ 
+-    private int extractIdFromPath(String path, String regexPattern) {
++    // Konstruktor untuk menginject Service
++    public VoucherHandler(VoucherService voucherService) {
++        this.voucherService = voucherService;
++    }
++
++    private int extractIdFromPath(String path, String regexPattern) { /* ... sama seperti sebelumnya ... */
+         Pattern pattern = Pattern.compile(regexPattern);
+         Matcher matcher = pattern.matcher(path);
+         if (matcher.find() && matcher.groupCount() >= 1) {
+@@ -39,34 +45,33 @@
+ 
+         try {
+             if ("GET".equals(method)) {
+-                if (path.equals("/vouchers")) { // GET /vouchers
++                if (path.equals("/vouchers")) {
+                     handleGetAllVouchers(res);
+-                } else if (path.matches("/vouchers/\\d+")) { // GET /vouchers/{id}
++                } else if (path.matches("/vouchers/\\d+")) {
+                     handleGetVoucherById(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for GET on Voucher");
+                 }
+             } else if ("POST".equals(method)) {
+-                if (path.equals("/vouchers")) { // POST /vouchers
++                if (path.equals("/vouchers")) {
+                     handleAddVoucher(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for POST on Voucher");
+                 }
+             } else if ("PUT".equals(method)) {
+-                if (path.matches("/vouchers/\\d+")) { // PUT /vouchers/{id}
++                if (path.matches("/vouchers/\\d+")) {
+                     handleUpdateVoucher(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for PUT on Voucher");
+                 }
+             } else if ("DELETE".equals(method)) {
+-                if (path.matches("/vouchers/\\d+")) { // DELETE /vouchers/{id}
++                if (path.matches("/vouchers/\\d+")) {
+                     handleDeleteVoucher(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for DELETE on Voucher");
+                 }
+             } else {
+                 res.sendError(405, "Method Not Allowed");
+-
+             }
+         } catch (Exception e) {
+             System.err.println("Error in VoucherHandler: " + e.getMessage());
+@@ -76,7 +81,7 @@
+     }
+ 
+     private void handleGetAllVouchers(Response res) throws IOException {
+-        List<Voucher> vouchers = voucherDAO.getAllVouchers();
++        List<Voucher> vouchers = voucherService.getAllVouchers(); // Memanggil service
+         res.sendJson(HttpURLConnection.HTTP_OK, vouchers);
+     }
+ 
+@@ -86,7 +91,7 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Voucher ID");
+             return;
+         }
+-        Voucher voucher = voucherDAO.getVoucherById(id);
++        Voucher voucher = voucherService.getVoucherById(id); // Memanggil service
+         if (voucher != null) {
+             res.sendJson(HttpURLConnection.HTTP_OK, voucher);
+         } else {
+@@ -102,22 +107,12 @@
+         String startDate = (String) reqJsonMap.get("startDate");
+         String endDate = (String) reqJsonMap.get("endDate");
+ 
+-        if (code == null || code.isEmpty() || description == null || description.isEmpty() || discount == null ||
+-                startDate == null || startDate.isEmpty() || endDate == null || endDate.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Voucher");
+-            return;
+-        }
+-        Pattern dateFormat = Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+-        if (!dateFormat.matcher(startDate).matches() || !dateFormat.matcher(endDate).matches()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid date format. Use YYYY-MM-DD hh:mm:ss");
+-            return;
+-        }
+-
+         Voucher newVoucher = new Voucher(code, description, discount, startDate, endDate);
+-        if (voucherDAO.addVoucher(newVoucher)) {
++
++        if (voucherService.addVoucher(newVoucher)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Voucher added successfully");
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add voucher or invalid data");
++            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add voucher. Check provided data and date format.");
+         }
+     }
+ 
+@@ -134,22 +129,16 @@
+         String startDate = (String) reqJsonMap.get("startDate");
+         String endDate = (String) reqJsonMap.get("endDate");
+ 
+-        if (code == null || code.isEmpty() || description == null || description.isEmpty() || discount == null ||
+-                startDate == null || startDate.isEmpty() || endDate == null || endDate.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Voucher update");
+-            return;
+-        }
+-        Pattern dateFormat = Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+-        if (!dateFormat.matcher(startDate).matches() || !dateFormat.matcher(endDate).matches()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid date format. Use YYYY-MM-DD hh:mm:ss");
+-            return;
+-        }
+-
+         Voucher updatedVoucher = new Voucher(id, code, description, discount, startDate, endDate);
+-        if (voucherDAO.updateVoucher(updatedVoucher)) {
++
++        if (voucherService.updateVoucher(updatedVoucher)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_OK, "Voucher updated successfully");
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Voucher not found or failed to update");
++            if (voucherService.getVoucherById(id) == null) {
++                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Voucher not found");
++            } else {
++                res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to update voucher. Check provided data and date format.");
++            }
+         }
+     }
+ 
+@@ -159,11 +148,11 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Voucher ID");
+             return;
+         }
+-        if (voucherDAO.deleteVoucher(id)) {
++
++        if (voucherService.deleteVoucher(id)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_OK, "Voucher deleted successfully");
+         } else {
+             res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Voucher not found or failed to delete");
+         }
+     }
+-}
+-
++}
+\ No newline at end of file
+Index: src/main/java/server/handlers/VillaHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package server.handlers;\r\n\r\nimport com.sun.net.httpserver.HttpExchange;\r\nimport com.sun.net.httpserver.HttpHandler;\r\nimport dao.BookingDAO;\r\nimport dao.ReviewDAO;\r\nimport dao.RoomTypeDAO;\r\nimport dao.VillaDAO;\r\nimport models.Booking;\r\nimport models.RoomType;\r\nimport models.Villa;\r\nimport models.Review;\r\nimport server.Request;\r\nimport server.Response;\r\n\r\nimport java.io.IOException;\r\nimport java.net.HttpURLConnection;\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.regex.Matcher;\r\nimport java.util.regex.Pattern;\r\n\r\npublic class VillaHandler implements HttpHandler {\r\n\r\n    private final VillaDAO villaDAO = new VillaDAO();\r\n    private final RoomTypeDAO roomTypeDAO = new RoomTypeDAO();\r\n    private final BookingDAO bookingDAO = new BookingDAO();\r\n    private final ReviewDAO reviewDAO = new ReviewDAO();\r\n\r\n    private int extractIdFromPath(String path, String regexPattern) {\r\n        Pattern pattern = Pattern.compile(regexPattern);\r\n        Matcher matcher = pattern.matcher(path);\r\n        if (matcher.find() && matcher.groupCount() >= 1) {\r\n            try {\r\n                return Integer.parseInt(matcher.group(1));\r\n            } catch (NumberFormatException e) {\r\n                return -1;\r\n            }\r\n        }\r\n        return -1;\r\n    }\r\n\r\n    private Map<String, String> parseQueryParams(java.net.URI uri) {\r\n        String query = uri.getQuery();\r\n        if (query == null || query.isEmpty()) {\r\n            return Map.of();\r\n        }\r\n        return java.util.Arrays.stream(query.split(\"&\"))\r\n                .map(s -> s.split(\"=\"))\r\n                .filter(a -> a.length == 2)\r\n                .collect(java.util.stream.Collectors.toMap(a -> a[0], a -> a[1]));\r\n    }\r\n\r\n    @Override\r\n    public void handle(HttpExchange httpExchange) throws IOException {\r\n        Request req = new Request(httpExchange);\r\n        Response res = new Response(httpExchange);\r\n        String path = httpExchange.getRequestURI().getPath();\r\n        String method = req.getRequestMethod();\r\n        String query = httpExchange.getRequestURI().getQuery();\r\n\r\n        try {\r\n            if (\"GET\".equals(method)) {\r\n                if (path.equals(\"/villas\")) {\r\n                    if (query != null && query.contains(\"ci_date\") && query.contains(\"co_date\")) {\r\n                        handleSearchVillasByAvailability(req, res);\r\n                    } else { // GET /villas\r\n                        handleGetAllVillas(res);\r\n                    }\r\n                } else if (path.matches(\"/villas/\\\\d+\")) { // GET /villas/{id}\r\n                    handleGetVillaById(req, res);\r\n                } else if (path.matches(\"/villas/\\\\d+/rooms\")) { // GET /villas/{id}/rooms\r\n                    handleGetRoomsByVillaId(req, res);\r\n                } else if (path.matches(\"/villas/\\\\d+/bookings\")) { // GET /villas/{id}/bookings\r\n                    handleGetBookingsByVillaId(req, res);\r\n                } else if (path.matches(\"/villas/\\\\d+/reviews\")) { // GET /villas/{id}/reviews\r\n                    handleGetReviewsByVillaId(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for GET on Villa\");\r\n                }\r\n            } else if (\"POST\".equals(method)) {\r\n                if (path.equals(\"/villas\")) { // POST /villas\r\n                    handleAddVilla(req, res);\r\n                } else if (path.matches(\"/villas/\\\\d+/rooms\")) { // POST /villas/{id}/rooms\r\n                    handleAddRoomTypeToVilla(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for POST on Villa\");\r\n                }\r\n            } else if (\"PUT\".equals(method)) {\r\n                if (path.matches(\"/villas/\\\\d+\")) { // PUT /villas/{id}\r\n                    handleUpdateVilla(req, res);\r\n                } else if (path.matches(\"/villas/\\\\d+/rooms/\\\\d+\")) { // PUT /villas/{id}/rooms/{id}\r\n                    handleUpdateRoomTypeInVilla(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for PUT on Villa\");\r\n                }\r\n            } else if (\"DELETE\".equals(method)) {\r\n                if (path.matches(\"/villas/\\\\d+/rooms/\\\\d+\")) { // DELETE /villas/{id}/rooms/{id}\r\n                    handleDeleteRoomTypeInVilla(req, res);\r\n                } else if (path.matches(\"/villas/\\\\d+\")) { // DELETE /villas/{id}\r\n                    handleDeleteVilla(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for DELETE on Villa\");\r\n                }\r\n            } else {\r\n                res.sendError(405, \"Method Not Allowed\");\r\n\r\n            }\r\n        } catch (Exception e) {\r\n            System.err.println(\"Error in VillaHandler: \" + e.getMessage());\r\n            e.printStackTrace();\r\n            res.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, \"Internal Server Error: \" + e.getMessage());\r\n        }\r\n    }\r\n\r\n    private void handleGetAllVillas(Response res) throws IOException {\r\n        List<Villa> villas = villaDAO.getAllVillas();\r\n        res.sendJson(HttpURLConnection.HTTP_OK, villas);\r\n    }\r\n\r\n    private void handleGetVillaById(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/villas/(\\\\d+)\");\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Villa ID\");\r\n            return;\r\n        }\r\n        Villa villa = villaDAO.getVillaById(id);\r\n        if (villa != null) {\r\n            res.sendJson(HttpURLConnection.HTTP_OK, villa);\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Villa not found\");\r\n        }\r\n    }\r\n\r\n    private void handleGetRoomsByVillaId(Request req, Response res) throws IOException {\r\n        int villaId = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/villas/(\\\\d+)/rooms\");\r\n        if (villaId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Villa ID\");\r\n            return;\r\n        }\r\n        List<RoomType> roomTypes = roomTypeDAO.getRoomTypesByVillaId(villaId);\r\n        res.sendJson(HttpURLConnection.HTTP_OK, roomTypes);\r\n    }\r\n\r\n    private void handleGetBookingsByVillaId(Request req, Response res) throws IOException {\r\n        int villaId = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/villas/(\\\\d+)/bookings\");\r\n        if (villaId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Villa ID\");\r\n            return;\r\n        }\r\n        List<Booking> bookings = bookingDAO.getBookingsByVillaId(villaId);\r\n        res.sendJson(HttpURLConnection.HTTP_OK, bookings);\r\n    }\r\n\r\n    private void handleGetReviewsByVillaId(Request req, Response res) throws IOException {\r\n        int villaId = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/villas/(\\\\d+)/reviews\");\r\n        if (villaId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Villa ID\");\r\n            return;\r\n        }\r\n        List<Review> reviews = reviewDAO.getReviewsByVillaId(villaId);\r\n        res.sendJson(HttpURLConnection.HTTP_OK, reviews);\r\n    }\r\n\r\n    private void handleSearchVillasByAvailability(Request req, Response res) throws IOException {\r\n        Map<String, String> params = parseQueryParams(req.getHttpExchange().getRequestURI());\r\n        String checkinDate = params.get(\"ci_date\");\r\n        String checkoutDate = params.get(\"co_date\");\r\n\r\n        if (checkinDate == null || checkinDate.isEmpty() || checkoutDate == null || checkoutDate.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing ci_date or co_date query parameters\");\r\n            return;\r\n        }\r\n\r\n        List<Villa> availableVillas = villaDAO.searchVillasByAvailability(checkinDate, checkoutDate);\r\n        res.sendJson(HttpURLConnection.HTTP_OK, availableVillas);\r\n    }\r\n\r\n    private void handleAddVilla(Request req, Response res) throws IOException {\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n\r\n        String name = (String) reqJsonMap.get(\"name\");\r\n        String description = (String) reqJsonMap.get(\"description\");\r\n        String address = (String) reqJsonMap.get(\"address\");\r\n\r\n        if (name == null || name.isEmpty() || description == null || description.isEmpty() || address == null || address.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields (name, description, address)\");\r\n            return;\r\n        }\r\n\r\n        Villa newVilla = new Villa(0, name, description, address);\r\n        if (villaDAO.addVilla(newVilla)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_CREATED, \"Villa added successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Failed to add villa or invalid data\");\r\n        }\r\n    }\r\n\r\n    private void handleAddRoomTypeToVilla(Request req, Response res) throws IOException {\r\n        int villaId = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/villas/(\\\\d+)/rooms\");\r\n        if (villaId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Villa ID\");\r\n            return;\r\n        }\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n\r\n        String name = (String) reqJsonMap.get(\"name\");\r\n        Integer quantity = (Integer) reqJsonMap.get(\"quantity\");\r\n        Integer capacity = (Integer) reqJsonMap.get(\"capacity\");\r\n        Integer price = (Integer) reqJsonMap.get(\"price\");\r\n        String bedSize = (String) reqJsonMap.get(\"bedSize\");\r\n        Boolean hasDesk = (Boolean) reqJsonMap.get(\"hasDesk\");\r\n        Boolean hasAc = (Boolean) reqJsonMap.get(\"hasAc\");\r\n        Boolean hasTv = (Boolean) reqJsonMap.get(\"hasTv\");\r\n        Boolean hasWifi = (Boolean) reqJsonMap.get(\"hasWifi\");\r\n        Boolean hasShower = (Boolean) reqJsonMap.get(\"hasShower\");\r\n        Boolean hasHotwater = (Boolean) reqJsonMap.get(\"hasHotwater\");\r\n        Boolean hasFridge = (Boolean) reqJsonMap.get(\"hasFridge\");\r\n\r\n        if (name == null || name.isEmpty() || quantity == null || capacity == null || price == null || bedSize == null || bedSize.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields for Room Type\");\r\n            return;\r\n        }\r\n\r\n        RoomType newRoomType = new RoomType(\r\n                0, villaId, name, quantity, capacity, price, bedSize,\r\n                hasDesk != null && hasDesk ? 1 : 0,\r\n                hasAc != null && hasAc ? 1 : 0,\r\n                hasTv != null && hasTv ? 1 : 0,\r\n                hasWifi != null && hasWifi ? 1 : 0,\r\n                hasShower != null && hasShower ? 1 : 0,\r\n                hasHotwater != null && hasHotwater ? 1 : 0,\r\n                hasFridge != null && hasFridge ? 1 : 0\r\n        );\r\n\r\n        if (roomTypeDAO.addRoomType(newRoomType)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_CREATED, \"Room Type added successfully to villa \" + villaId);\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Failed to add room type or invalid data\");\r\n        }\r\n    }\r\n\r\n    private void handleUpdateVilla(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/villas/(\\\\d+)\");\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Villa ID\");\r\n            return;\r\n        }\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n        String name = (String) reqJsonMap.get(\"name\");\r\n        String description = (String) reqJsonMap.get(\"description\");\r\n        String address = (String) reqJsonMap.get(\"address\");\r\n\r\n        if (name == null || name.isEmpty() || description == null || description.isEmpty() || address == null || address.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields for Villa update\");\r\n            return;\r\n        }\r\n\r\n        Villa updatedVilla = new Villa(id, name, description, address);\r\n        if (villaDAO.updateVilla(updatedVilla)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_OK, \"Villa updated successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Villa not found or failed to update\");\r\n        }\r\n    }\r\n\r\n    private void handleUpdateRoomTypeInVilla(Request req, Response res) throws IOException {\r\n        Pattern pattern = Pattern.compile(\"/villas/(\\\\d+)/rooms/(\\\\d+)\");\r\n        Matcher matcher = pattern.matcher(req.getHttpExchange().getRequestURI().getPath());\r\n        int villaId = -1;\r\n        int roomTypeId = -1;\r\n        if (matcher.find() && matcher.groupCount() == 2) {\r\n            try {\r\n                villaId = Integer.parseInt(matcher.group(1));\r\n                roomTypeId = Integer.parseInt(matcher.group(2));\r\n            } catch (NumberFormatException e) { }\r\n        }\r\n\r\n        if (villaId == -1 || roomTypeId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Villa ID or Room ID in path\");\r\n            return;\r\n        }\r\n\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n        String name = (String) reqJsonMap.get(\"name\");\r\n        Integer quantity = (Integer) reqJsonMap.get(\"quantity\");\r\n        Integer capacity = (Integer) reqJsonMap.get(\"capacity\");\r\n        Integer price = (Integer) reqJsonMap.get(\"price\");\r\n        String bedSize = (String) reqJsonMap.get(\"bedSize\");\r\n        Boolean hasDesk = (Boolean) reqJsonMap.get(\"hasDesk\");\r\n        Boolean hasAc = (Boolean) reqJsonMap.get(\"hasAc\");\r\n        Boolean hasTv = (Boolean) reqJsonMap.get(\"hasTv\");\r\n        Boolean hasWifi = (Boolean) reqJsonMap.get(\"hasWifi\");\r\n        Boolean hasShower = (Boolean) reqJsonMap.get(\"hasShower\");\r\n        Boolean hasHotwater = (Boolean) reqJsonMap.get(\"hasHotwater\");\r\n        Boolean hasFridge = (Boolean) reqJsonMap.get(\"hasFridge\");\r\n\r\n        if (name == null || name.isEmpty() || quantity == null || capacity == null || price == null || bedSize == null || bedSize.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields for Room Type update\");\r\n            return;\r\n        }\r\n\r\n        RoomType updatedRoomType = new RoomType(\r\n                roomTypeId, villaId, name, quantity, capacity, price, bedSize,\r\n                hasDesk != null && hasDesk ? 1 : 0,\r\n                hasAc != null && hasAc ? 1 : 0,\r\n                hasTv != null && hasTv ? 1 : 0,\r\n                hasWifi != null && hasWifi ? 1 : 0,\r\n                hasShower != null && hasShower ? 1 : 0,\r\n                hasHotwater != null && hasHotwater ? 1 : 0,\r\n                hasFridge != null && hasFridge ? 1 : 0\r\n        );\r\n\r\n        if (roomTypeDAO.updateRoomType(updatedRoomType)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_OK, \"Room Type updated successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Room Type not found or failed to update\");\r\n        }\r\n    }\r\n\r\n    private void handleDeleteRoomTypeInVilla(Request req, Response res) throws IOException {\r\n        int roomTypeId = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/villas/\\\\d+/rooms/(\\\\d+)\");\r\n        if (roomTypeId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Room ID\");\r\n            return;\r\n        }\r\n        if (roomTypeDAO.deleteRoomType(roomTypeId)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_OK, \"Room Type deleted successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Room Type not found or failed to delete\");\r\n        }\r\n    }\r\n\r\n    private void handleDeleteVilla(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/villas/(\\\\d+)\");\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Villa ID\");\r\n            return;\r\n        }\r\n        if (villaDAO.deleteVilla(id)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_OK, \"Villa deleted successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Villa not found or failed to delete\");\r\n        }\r\n    }\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/server/handlers/VillaHandler.java b/src/main/java/server/handlers/VillaHandler.java
+--- a/src/main/java/server/handlers/VillaHandler.java	(revision 0e48c44875f91e44224bcf98f5cb5405506bf46d)
++++ b/src/main/java/server/handlers/VillaHandler.java	(date 1750177677928)
+@@ -2,16 +2,13 @@
+ 
+ import com.sun.net.httpserver.HttpExchange;
+ import com.sun.net.httpserver.HttpHandler;
+-import dao.BookingDAO;
+-import dao.ReviewDAO;
+-import dao.RoomTypeDAO;
+-import dao.VillaDAO;
+ import models.Booking;
+ import models.RoomType;
+ import models.Villa;
+ import models.Review;
+ import server.Request;
+ import server.Response;
++import services.VillaService; // Import service baru
+ 
+ import java.io.IOException;
+ import java.net.HttpURLConnection;
+@@ -22,12 +19,15 @@
+ 
+ public class VillaHandler implements HttpHandler {
+ 
+-    private final VillaDAO villaDAO = new VillaDAO();
+-    private final RoomTypeDAO roomTypeDAO = new RoomTypeDAO();
+-    private final BookingDAO bookingDAO = new BookingDAO();
+-    private final ReviewDAO reviewDAO = new ReviewDAO();
++    // Ganti DAO dengan Service
++    private final VillaService villaService;
+ 
+-    private int extractIdFromPath(String path, String regexPattern) {
++    // Konstruktor untuk menginject Service
++    public VillaHandler(VillaService villaService) {
++        this.villaService = villaService;
++    }
++
++    private int extractIdFromPath(String path, String regexPattern) { /* ... sama seperti sebelumnya ... */
+         Pattern pattern = Pattern.compile(regexPattern);
+         Matcher matcher = pattern.matcher(path);
+         if (matcher.find() && matcher.groupCount() >= 1) {
+@@ -40,7 +40,7 @@
+         return -1;
+     }
+ 
+-    private Map<String, String> parseQueryParams(java.net.URI uri) {
++    private Map<String, String> parseQueryParams(java.net.URI uri) { /* ... sama seperti sebelumnya ... */
+         String query = uri.getQuery();
+         if (query == null || query.isEmpty()) {
+             return Map.of();
+@@ -64,47 +64,46 @@
+                 if (path.equals("/villas")) {
+                     if (query != null && query.contains("ci_date") && query.contains("co_date")) {
+                         handleSearchVillasByAvailability(req, res);
+-                    } else { // GET /villas
++                    } else {
+                         handleGetAllVillas(res);
+                     }
+-                } else if (path.matches("/villas/\\d+")) { // GET /villas/{id}
++                } else if (path.matches("/villas/\\d+")) {
+                     handleGetVillaById(req, res);
+-                } else if (path.matches("/villas/\\d+/rooms")) { // GET /villas/{id}/rooms
++                } else if (path.matches("/villas/\\d+/rooms")) {
+                     handleGetRoomsByVillaId(req, res);
+-                } else if (path.matches("/villas/\\d+/bookings")) { // GET /villas/{id}/bookings
++                } else if (path.matches("/villas/\\d+/bookings")) {
+                     handleGetBookingsByVillaId(req, res);
+-                } else if (path.matches("/villas/\\d+/reviews")) { // GET /villas/{id}/reviews
++                } else if (path.matches("/villas/\\d+/reviews")) {
+                     handleGetReviewsByVillaId(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for GET on Villa");
+                 }
+             } else if ("POST".equals(method)) {
+-                if (path.equals("/villas")) { // POST /villas
++                if (path.equals("/villas")) {
+                     handleAddVilla(req, res);
+-                } else if (path.matches("/villas/\\d+/rooms")) { // POST /villas/{id}/rooms
++                } else if (path.matches("/villas/\\d+/rooms")) {
+                     handleAddRoomTypeToVilla(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for POST on Villa");
+                 }
+             } else if ("PUT".equals(method)) {
+-                if (path.matches("/villas/\\d+")) { // PUT /villas/{id}
++                if (path.matches("/villas/\\d+")) {
+                     handleUpdateVilla(req, res);
+-                } else if (path.matches("/villas/\\d+/rooms/\\d+")) { // PUT /villas/{id}/rooms/{id}
++                } else if (path.matches("/villas/\\d+/rooms/\\d+")) {
+                     handleUpdateRoomTypeInVilla(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for PUT on Villa");
+                 }
+             } else if ("DELETE".equals(method)) {
+-                if (path.matches("/villas/\\d+/rooms/\\d+")) { // DELETE /villas/{id}/rooms/{id}
++                if (path.matches("/villas/\\d+/rooms/\\d+")) {
+                     handleDeleteRoomTypeInVilla(req, res);
+-                } else if (path.matches("/villas/\\d+")) { // DELETE /villas/{id}
++                } else if (path.matches("/villas/\\d+")) {
+                     handleDeleteVilla(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for DELETE on Villa");
+                 }
+             } else {
+                 res.sendError(405, "Method Not Allowed");
+-
+             }
+         } catch (Exception e) {
+             System.err.println("Error in VillaHandler: " + e.getMessage());
+@@ -114,7 +113,7 @@
+     }
+ 
+     private void handleGetAllVillas(Response res) throws IOException {
+-        List<Villa> villas = villaDAO.getAllVillas();
++        List<Villa> villas = villaService.getAllVillas(); // Memanggil service
+         res.sendJson(HttpURLConnection.HTTP_OK, villas);
+     }
+ 
+@@ -124,7 +123,7 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Villa ID");
+             return;
+         }
+-        Villa villa = villaDAO.getVillaById(id);
++        Villa villa = villaService.getVillaById(id); // Memanggil service
+         if (villa != null) {
+             res.sendJson(HttpURLConnection.HTTP_OK, villa);
+         } else {
+@@ -138,7 +137,7 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Villa ID");
+             return;
+         }
+-        List<RoomType> roomTypes = roomTypeDAO.getRoomTypesByVillaId(villaId);
++        List<RoomType> roomTypes = villaService.getRoomTypesByVillaId(villaId); // Memanggil service
+         res.sendJson(HttpURLConnection.HTTP_OK, roomTypes);
+     }
+ 
+@@ -148,7 +147,7 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Villa ID");
+             return;
+         }
+-        List<Booking> bookings = bookingDAO.getBookingsByVillaId(villaId);
++        List<Booking> bookings = villaService.getBookingsByVillaId(villaId); // Memanggil service
+         res.sendJson(HttpURLConnection.HTTP_OK, bookings);
+     }
+ 
+@@ -158,7 +157,7 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Villa ID");
+             return;
+         }
+-        List<Review> reviews = reviewDAO.getReviewsByVillaId(villaId);
++        List<Review> reviews = villaService.getReviewsByVillaId(villaId); // Memanggil service
+         res.sendJson(HttpURLConnection.HTTP_OK, reviews);
+     }
+ 
+@@ -167,32 +166,27 @@
+         String checkinDate = params.get("ci_date");
+         String checkoutDate = params.get("co_date");
+ 
+-        if (checkinDate == null || checkinDate.isEmpty() || checkoutDate == null || checkoutDate.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing ci_date or co_date query parameters");
+-            return;
+-        }
++        List<Villa> availableVillas = villaService.searchVillasByAvailability(checkinDate, checkoutDate); // Memanggil service
+ 
+-        List<Villa> availableVillas = villaDAO.searchVillasByAvailability(checkinDate, checkoutDate);
+-        res.sendJson(HttpURLConnection.HTTP_OK, availableVillas);
++        if (availableVillas != null) { // Service mungkin mengembalikan null jika validasi gagal
++            res.sendJson(HttpURLConnection.HTTP_OK, availableVillas);
++        } else {
++            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing or invalid date format for ci_date or co_date query parameters. Use YYYY-MM-DD hh:mm:ss.");
++        }
+     }
+ 
+     private void handleAddVilla(Request req, Response res) throws IOException {
+         Map<String, Object> reqJsonMap = req.getJSON();
+-
+         String name = (String) reqJsonMap.get("name");
+         String description = (String) reqJsonMap.get("description");
+         String address = (String) reqJsonMap.get("address");
+ 
+-        if (name == null || name.isEmpty() || description == null || description.isEmpty() || address == null || address.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields (name, description, address)");
+-            return;
+-        }
+-
+         Villa newVilla = new Villa(0, name, description, address);
+-        if (villaDAO.addVilla(newVilla)) {
++
++        if (villaService.addVilla(newVilla)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Villa added successfully");
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add villa or invalid data");
++            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add villa. Missing required fields (name, description, address) or invalid data.");
+         }
+     }
+ 
+@@ -203,7 +197,6 @@
+             return;
+         }
+         Map<String, Object> reqJsonMap = req.getJSON();
+-
+         String name = (String) reqJsonMap.get("name");
+         Integer quantity = (Integer) reqJsonMap.get("quantity");
+         Integer capacity = (Integer) reqJsonMap.get("capacity");
+@@ -217,11 +210,6 @@
+         Boolean hasHotwater = (Boolean) reqJsonMap.get("hasHotwater");
+         Boolean hasFridge = (Boolean) reqJsonMap.get("hasFridge");
+ 
+-        if (name == null || name.isEmpty() || quantity == null || capacity == null || price == null || bedSize == null || bedSize.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Room Type");
+-            return;
+-        }
+-
+         RoomType newRoomType = new RoomType(
+                 0, villaId, name, quantity, capacity, price, bedSize,
+                 hasDesk != null && hasDesk ? 1 : 0,
+@@ -233,10 +221,10 @@
+                 hasFridge != null && hasFridge ? 1 : 0
+         );
+ 
+-        if (roomTypeDAO.addRoomType(newRoomType)) {
++        if (villaService.addRoomTypeToVilla(villaId, newRoomType)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Room Type added successfully to villa " + villaId);
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add room type or invalid data");
++            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add room type. Missing required fields or invalid data.");
+         }
+     }
+ 
+@@ -251,29 +239,30 @@
+         String description = (String) reqJsonMap.get("description");
+         String address = (String) reqJsonMap.get("address");
+ 
+-        if (name == null || name.isEmpty() || description == null || description.isEmpty() || address == null || address.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Villa update");
+-            return;
+-        }
+-
+         Villa updatedVilla = new Villa(id, name, description, address);
+-        if (villaDAO.updateVilla(updatedVilla)) {
++
++        if (villaService.updateVilla(updatedVilla)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_OK, "Villa updated successfully");
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Villa not found or failed to update");
++            if (villaService.getVillaById(id) == null) {
++                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Villa not found");
++            } else {
++                res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to update villa. Check provided data.");
++            }
+         }
+     }
+ 
+     private void handleUpdateRoomTypeInVilla(Request req, Response res) throws IOException {
+         Pattern pattern = Pattern.compile("/villas/(\\d+)/rooms/(\\d+)");
+         Matcher matcher = pattern.matcher(req.getHttpExchange().getRequestURI().getPath());
++
+         int villaId = -1;
+         int roomTypeId = -1;
+         if (matcher.find() && matcher.groupCount() == 2) {
+             try {
+                 villaId = Integer.parseInt(matcher.group(1));
+                 roomTypeId = Integer.parseInt(matcher.group(2));
+-            } catch (NumberFormatException e) { }
++            } catch (NumberFormatException e) { /* handled by -1 defaults */ }
+         }
+ 
+         if (villaId == -1 || roomTypeId == -1) {
+@@ -281,6 +270,11 @@
+             return;
+         }
+ 
++        // --- SOLUSI: Buat variabel final atau effectively final baru ---
++        final int finalRoomTypeId = roomTypeId; // Salinan final dari roomTypeId
++        final int finalVillaId = villaId; // Salinan final dari villaId (jika digunakan dalam lambda lain)
++
++
+         Map<String, Object> reqJsonMap = req.getJSON();
+         String name = (String) reqJsonMap.get("name");
+         Integer quantity = (Integer) reqJsonMap.get("quantity");
+@@ -295,13 +289,8 @@
+         Boolean hasHotwater = (Boolean) reqJsonMap.get("hasHotwater");
+         Boolean hasFridge = (Boolean) reqJsonMap.get("hasFridge");
+ 
+-        if (name == null || name.isEmpty() || quantity == null || capacity == null || price == null || bedSize == null || bedSize.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Room Type update");
+-            return;
+-        }
+-
+         RoomType updatedRoomType = new RoomType(
+-                roomTypeId, villaId, name, quantity, capacity, price, bedSize,
++                finalRoomTypeId, finalVillaId, name, quantity, capacity, price, bedSize, // Gunakan finalRoomTypeId dan finalVillaId
+                 hasDesk != null && hasDesk ? 1 : 0,
+                 hasAc != null && hasAc ? 1 : 0,
+                 hasTv != null && hasTv ? 1 : 0,
+@@ -311,10 +300,15 @@
+                 hasFridge != null && hasFridge ? 1 : 0
+         );
+ 
+-        if (roomTypeDAO.updateRoomType(updatedRoomType)) {
++        if (villaService.updateRoomTypeInVilla(updatedRoomType)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_OK, "Room Type updated successfully");
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Room Type not found or failed to update");
++            // Gunakan finalRoomTypeId di sini
++            if (villaService.getRoomTypesByVillaId(finalVillaId).stream().noneMatch(rt -> rt.getId() == finalRoomTypeId)) {
++                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Room Type not found in specified Villa");
++            } else {
++                res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to update room type. Check provided data.");
++            }
+         }
+     }
+ 
+@@ -324,7 +318,8 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Room ID");
+             return;
+         }
+-        if (roomTypeDAO.deleteRoomType(roomTypeId)) {
++
++        if (villaService.deleteRoomType(roomTypeId)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_OK, "Room Type deleted successfully");
+         } else {
+             res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Room Type not found or failed to delete");
+@@ -337,11 +332,11 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Villa ID");
+             return;
+         }
+-        if (villaDAO.deleteVilla(id)) {
++
++        if (villaService.deleteVilla(id)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_OK, "Villa deleted successfully");
+         } else {
+             res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Villa not found or failed to delete");
+         }
+     }
+-}
+-
++}
+\ No newline at end of file
+Index: src/main/java/services/VillaService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package services;\r\n\r\npublic class VillaService {\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/services/VillaService.java b/src/main/java/services/VillaService.java
+--- a/src/main/java/services/VillaService.java	(revision 0e48c44875f91e44224bcf98f5cb5405506bf46d)
++++ b/src/main/java/services/VillaService.java	(date 1750177715658)
+@@ -1,4 +1,111 @@
+ package services;
+ 
++import dao.BookingDAO;
++import dao.ReviewDAO;
++import dao.RoomTypeDAO;
++import dao.VillaDAO;
++import models.Booking;
++import models.Review;
++import models.RoomType; //
++import models.Villa; //
++
++import java.util.List;
++
+ public class VillaService {
+-}
++    private final VillaDAO villaDAO;
++    private final RoomTypeDAO roomTypeDAO;
++    private final BookingDAO bookingDAO;
++    private final ReviewDAO reviewDAO;
++
++    public VillaService(VillaDAO villaDAO, RoomTypeDAO roomTypeDAO, BookingDAO bookingDAO, ReviewDAO reviewDAO) {
++        this.villaDAO = villaDAO;
++        this.roomTypeDAO = roomTypeDAO;
++        this.bookingDAO = bookingDAO;
++        this.reviewDAO = reviewDAO;
++    }
++
++    public List<Villa> getAllVillas() {
++        return villaDAO.getAllVillas();
++    }
++
++    public Villa getVillaById(int id) {
++        return villaDAO.getVillaById(id);
++    }
++
++    public List<RoomType> getRoomTypesByVillaId(int villaId) {
++        return roomTypeDAO.getRoomTypesByVillaId(villaId);
++    }
++
++    public List<Booking> getBookingsByVillaId(int villaId) {
++        return bookingDAO.getBookingsByVillaId(villaId);
++    }
++
++    public List<Review> getReviewsByVillaId(int villaId) {
++        return reviewDAO.getReviewsByVillaId(villaId);
++    }
++
++    public List<Villa> searchVillasByAvailability(String checkinDate, String checkoutDate) {
++        // TODO: Add date format validation (YYYY-MM-DD hh:mm:ss) if not already in DAO
++        if (checkinDate == null || checkinDate.isEmpty() || checkoutDate == null || checkoutDate.isEmpty()) {
++            System.err.println("Validation Error: Missing checkinDate or checkoutDate for availability search");
++            return null; // Atau throw IllegalArgumentException
++        }
++        return villaDAO.searchVillasByAvailability(checkinDate, checkoutDate);
++    }
++
++    public boolean addVilla(Villa villa) {
++        if (villa.getName() == null || villa.getName().isEmpty() ||
++                villa.getDescription() == null || villa.getDescription().isEmpty() ||
++                villa.getAddress() == null || villa.getAddress().isEmpty()) {
++            System.err.println("Validation Error: Missing required fields for Villa (name, description, address)");
++            return false;
++        }
++        return villaDAO.addVilla(villa);
++    }
++
++    public boolean addRoomTypeToVilla(int villaId, RoomType roomType) {
++        //
++        if (roomType.getName() == null || roomType.getName().isEmpty() ||
++                roomType.getBedSize() == null || roomType.getBedSize().isEmpty() ||
++                roomType.getQuantity() <= 0 || roomType.getCapacity() <= 0 || roomType.getPrice() <= 0) { // Perbaikan di sini
++            System.err.println("Validation Error: Missing required string fields or invalid numeric values (<=0) for Room Type");
++            return false;
++        }
++        roomType.setVillaId(villaId); // Memastikan roomType terkait dengan villa yang benar
++        return roomTypeDAO.addRoomType(roomType);
++    }
++
++    public boolean updateVilla(Villa villa) {
++        if (villa.getName() == null || villa.getName().isEmpty() ||
++                villa.getDescription() == null || villa.getDescription().isEmpty() ||
++                villa.getAddress() == null || villa.getAddress().isEmpty()) {
++            System.err.println("Validation Error: Missing required fields for Villa update");
++            return false;
++        }
++        return villaDAO.updateVilla(villa);
++    }
++
++    public boolean updateRoomTypeInVilla(RoomType roomType) {
++        // Periksa apakah ID kamar dan ID vila valid (tidak -1)
++        if (roomType.getId() == -1 || roomType.getVillaId() == -1) {
++            System.err.println("Validation Error: Invalid Room ID or Villa ID for update");
++            return false;
++        }
++        //
++        if (roomType.getName() == null || roomType.getName().isEmpty() ||
++                roomType.getBedSize() == null || roomType.getBedSize().isEmpty() ||
++                roomType.getQuantity() <= 0 || roomType.getCapacity() <= 0 || roomType.getPrice() <= 0) { // Perbaikan di sini
++            System.err.println("Validation Error: Missing required string fields or invalid numeric values (<=0) for Room Type update");
++            return false;
++        }
++        return roomTypeDAO.updateRoomType(roomType);
++    }
++
++    public boolean deleteRoomType(int roomTypeId) {
++        return roomTypeDAO.deleteRoomType(roomTypeId);
++    }
++
++    public boolean deleteVilla(int id) {
++        return villaDAO.deleteVilla(id);
++    }
++}
+\ No newline at end of file
+Index: src/main/java/server/router/Router.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\r\npackage server.router;\r\n\r\nimport com.sun.net.httpserver.HttpExchange;\r\nimport com.sun.net.httpserver.HttpHandler;\r\nimport server.Request;\r\nimport server.Response;\r\nimport server.handlers.CustomerHandler;\r\nimport server.handlers.VillaHandler;\r\nimport server.handlers.VoucherHandler;\r\n\r\nimport java.io.IOException;\r\nimport java.net.HttpURLConnection;\r\nimport java.net.URI;\r\nimport java.util.Map;\r\nimport java.util.regex.Matcher;\r\nimport java.util.regex.Pattern;\r\n\r\npublic class Router implements HttpHandler {\r\n\r\n    // API Key yang di-hardcode (dari dosen Anda)\r\n    private static final String API_KEY = \"PBO123\"; //\r\n\r\n    // Instansiasi semua handler Anda di sini\r\n    private final VillaHandler villaHandler = new VillaHandler();\r\n    private final CustomerHandler customerHandler = new CustomerHandler();\r\n    private final VoucherHandler voucherHandler = new VoucherHandler();\r\n    // Jika Anda punya BookingHandler atau ReviewHandler terpisah (bukan nested di Villa/CustomerHandler),\r\n    // instansiasi juga di sini. Contoh:\r\n    // private final BookingHandler bookingHandler = new BookingHandler();\r\n    // private final ReviewHandler reviewHandler = new ReviewHandler();\r\n\r\n    @Override\r\n    public void handle(HttpExchange httpExchange) throws IOException {\r\n        Request req = new Request(httpExchange);\r\n        Response res = new Response(httpExchange);\r\n\r\n        URI uri = httpExchange.getRequestURI();\r\n        String path = uri.getPath();\r\n        String method = req.getRequestMethod();\r\n        String query = uri.getQuery();\r\n\r\n        System.out.printf(\"Received %s request for path: %s, query: %s\\n\", method, path, query);\r\n\r\n        try {\r\n            // Autentikasi API Key\r\n            String providedApiKey = req.getHttpExchange().getRequestHeaders()\r\n                    .getFirst(\"X-API-Key\");\r\n            if (providedApiKey == null || !providedApiKey.equals(API_KEY)) {\r\n                res.sendError(HttpURLConnection.HTTP_UNAUTHORIZED, \"Unauthorized: Invalid API Key\");\r\n                return;\r\n            }\r\n\r\n            // --- Logic Routing ---\r\n            // Villa Endpoints\r\n            if (path.startsWith(\"/villas\")) {\r\n                villaHandler.handle(httpExchange); // Delegasikan ke VillaHandler\r\n            }\r\n            // Customer Endpoints\r\n            else if (path.startsWith(\"/customers\")) {\r\n                customerHandler.handle(httpExchange); // Delegasikan ke CustomerHandler\r\n            }\r\n            // Voucher Endpoints\r\n            else if (path.startsWith(\"/vouchers\")) {\r\n                voucherHandler.handle(httpExchange); // Delegasikan ke VoucherHandler\r\n            }\r\n            // Handle root path\r\n            else if (path.equals(\"/\")) {\r\n                res.sendJson(HttpURLConnection.HTTP_OK, Map.of(\"message\", \"Welcome to the Villa Booking API! Available endpoints: /villas, /customers, /vouchers\"));\r\n            }\r\n            // Default handling for unmatched paths\r\n            else {\r\n                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found\");\r\n            }\r\n\r\n        } catch (Exception e) {\r\n            System.err.println(\"Error processing request: \" + e.getMessage());\r\n            e.printStackTrace();\r\n            res.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, \"Internal Server Error: \" + e.getMessage());\r\n        } finally {\r\n            // httpExchange.close() sudah dihandle di Response.send() dan sendError/sendJson\r\n            // Pastikan tidak ada resource yang bocor jika respons belum terkirim karena suatu error\r\n            if (!res.isSent()) {\r\n                httpExchange.close();\r\n            }\r\n        }\r\n    }\r\n\r\n    // Utility methods (bisa dipindahkan ke Request/Response atau kelas util terpisah jika lebih sering dipakai)\r\n    // Untuk saat ini, bisa diletakkan di sini atau di masing-masing handler jika spesifik\r\n    private int extractIdFromPath(String path, String regexPattern) {\r\n        Pattern pattern = Pattern.compile(regexPattern);\r\n        Matcher matcher = pattern.matcher(path);\r\n        if (matcher.find() && matcher.groupCount() >= 1) {\r\n            try {\r\n                return Integer.parseInt(matcher.group(1));\r\n            } catch (NumberFormatException e) {\r\n                return -1;\r\n            }\r\n        }\r\n        return -1;\r\n    }\r\n\r\n    private Map<String, String> parseQueryParams(URI uri) {\r\n        String query = uri.getQuery();\r\n        if (query == null || query.isEmpty()) {\r\n            return Map.of();\r\n        }\r\n        return java.util.Arrays.stream(query.split(\"&\"))\r\n                .map(s -> s.split(\"=\"))\r\n                .filter(a -> a.length == 2)\r\n                .collect(java.util.stream.Collectors.toMap(a -> a[0], a -> a[1]));\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/server/router/Router.java b/src/main/java/server/router/Router.java
+--- a/src/main/java/server/router/Router.java	(revision 0e48c44875f91e44224bcf98f5cb5405506bf46d)
++++ b/src/main/java/server/router/Router.java	(date 1750177529758)
+@@ -1,13 +1,21 @@
+-
+ package server.router;
+ 
+ import com.sun.net.httpserver.HttpExchange;
+ import com.sun.net.httpserver.HttpHandler;
++import dao.BookingDAO; // Import semua DAO
++import dao.CustomerDAO;
++import dao.ReviewDAO;
++import dao.RoomTypeDAO;
++import dao.VillaDAO;
++import dao.VoucherDAO;
+ import server.Request;
+ import server.Response;
+ import server.handlers.CustomerHandler;
+ import server.handlers.VillaHandler;
+ import server.handlers.VoucherHandler;
++import services.CustomerService; // Import semua Service
++import services.VillaService;
++import services.VoucherService;
+ 
+ import java.io.IOException;
+ import java.net.HttpURLConnection;
+@@ -18,97 +26,88 @@
+ 
+ public class Router implements HttpHandler {
+ 
+-    // API Key yang di-hardcode (dari dosen Anda)
+     private static final String API_KEY = "PBO123"; //
+ 
+-    // Instansiasi semua handler Anda di sini
+-    private final VillaHandler villaHandler = new VillaHandler();
+-    private final CustomerHandler customerHandler = new CustomerHandler();
+-    private final VoucherHandler voucherHandler = new VoucherHandler();
+-    // Jika Anda punya BookingHandler atau ReviewHandler terpisah (bukan nested di Villa/CustomerHandler),
+-    // instansiasi juga di sini. Contoh:
+-    // private final BookingHandler bookingHandler = new BookingHandler();
+-    // private final ReviewHandler reviewHandler = new ReviewHandler();
++    // Inisialisasi DAO
++    private final BookingDAO bookingDAO = new BookingDAO(); //
++    private final CustomerDAO customerDAO = new CustomerDAO(); //
++    private final ReviewDAO reviewDAO = new ReviewDAO(); //
++    private final RoomTypeDAO roomTypeDAO = new RoomTypeDAO(); //
++    private final VillaDAO villaDAO = new VillaDAO(); //
++    private final VoucherDAO voucherDAO = new VoucherDAO(); //
++
++    // Inisialisasi Service, menginject DAO yang diperlukan
++    private final CustomerService customerService = new CustomerService(customerDAO, bookingDAO, reviewDAO);
++    private final VillaService villaService = new VillaService(villaDAO, roomTypeDAO, bookingDAO, reviewDAO);
++    private final VoucherService voucherService = new VoucherService(voucherDAO);
++
++    // Inisialisasi Handler (Controller), menginject Service yang diperlukan
++    private final VillaHandler villaHandler = new VillaHandler(villaService);
++    private final CustomerHandler customerHandler = new CustomerHandler(customerService);
++    private final VoucherHandler voucherHandler = new VoucherHandler(voucherService);
+ 
+     @Override
+     public void handle(HttpExchange httpExchange) throws IOException {
+-        Request req = new Request(httpExchange);
+-        Response res = new Response(httpExchange);
+-
++        Request req = new Request(httpExchange); //
++        Response res = new Response(httpExchange); //
+         URI uri = httpExchange.getRequestURI();
+         String path = uri.getPath();
+         String method = req.getRequestMethod();
+         String query = uri.getQuery();
+-
+-        System.out.printf("Received %s request for path: %s, query: %s\n", method, path, query);
++        System.out.printf("Received %s request for path: %s, query: %s\n", method, path, query); //
+ 
+         try {
+             // Autentikasi API Key
+-            String providedApiKey = req.getHttpExchange().getRequestHeaders()
+-                    .getFirst("X-API-Key");
+-            if (providedApiKey == null || !providedApiKey.equals(API_KEY)) {
+-                res.sendError(HttpURLConnection.HTTP_UNAUTHORIZED, "Unauthorized: Invalid API Key");
+-                return;
++            String providedApiKey = req.getHttpExchange().getRequestHeaders().getFirst("X-API-Key"); //
++            if (providedApiKey == null || !providedApiKey.equals(API_KEY)) { //
++                res.sendError(HttpURLConnection.HTTP_UNAUTHORIZED, "Unauthorized: Invalid API Key"); //
++                return; //
+             }
+ 
+             // --- Logic Routing ---
+-            // Villa Endpoints
+-            if (path.startsWith("/villas")) {
++            if (path.startsWith("/villas")) { //
+                 villaHandler.handle(httpExchange); // Delegasikan ke VillaHandler
+-            }
+-            // Customer Endpoints
+-            else if (path.startsWith("/customers")) {
++            } else if (path.startsWith("/customers")) { //
+                 customerHandler.handle(httpExchange); // Delegasikan ke CustomerHandler
+-            }
+-            // Voucher Endpoints
+-            else if (path.startsWith("/vouchers")) {
++            } else if (path.startsWith("/vouchers")) { //
+                 voucherHandler.handle(httpExchange); // Delegasikan ke VoucherHandler
+-            }
+-            // Handle root path
+-            else if (path.equals("/")) {
+-                res.sendJson(HttpURLConnection.HTTP_OK, Map.of("message", "Welcome to the Villa Booking API! Available endpoints: /villas, /customers, /vouchers"));
++            } else if (path.equals("/")) { // Handle root path
++                res.sendJson(HttpURLConnection.HTTP_OK, Map.of("message", "Welcome to the Villa Booking API! Available endpoints: /villas, /customers, /vouchers")); //
++            } else { // Default handling for unmatched paths
++                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found"); //
+             }
+-            // Default handling for unmatched paths
+-            else {
+-                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found");
+-            }
+-
+-        } catch (Exception e) {
+-            System.err.println("Error processing request: " + e.getMessage());
+-            e.printStackTrace();
+-            res.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, "Internal Server Error: " + e.getMessage());
+-        } finally {
+-            // httpExchange.close() sudah dihandle di Response.send() dan sendError/sendJson
+-            // Pastikan tidak ada resource yang bocor jika respons belum terkirim karena suatu error
+-            if (!res.isSent()) {
+-                httpExchange.close();
++        } catch (Exception e) { //
++            System.err.println("Error processing request: " + e.getMessage()); //
++            e.printStackTrace(); //
++            res.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, "Internal Server Error: " + e.getMessage()); //
++        } finally { //
++            if (!res.isSent()) { //
++                httpExchange.close(); //
+             }
+         }
+     }
+ 
+-    // Utility methods (bisa dipindahkan ke Request/Response atau kelas util terpisah jika lebih sering dipakai)
+-    // Untuk saat ini, bisa diletakkan di sini atau di masing-masing handler jika spesifik
+-    private int extractIdFromPath(String path, String regexPattern) {
+-        Pattern pattern = Pattern.compile(regexPattern);
+-        Matcher matcher = pattern.matcher(path);
+-        if (matcher.find() && matcher.groupCount() >= 1) {
+-            try {
+-                return Integer.parseInt(matcher.group(1));
+-            } catch (NumberFormatException e) {
+-                return -1;
++    private int extractIdFromPath(String path, String regexPattern) { /* ... sama seperti sebelumnya ... */
++        Pattern pattern = Pattern.compile(regexPattern); //
++        Matcher matcher = pattern.matcher(path); //
++        if (matcher.find() && matcher.groupCount() >= 1) { //
++            try { //
++                return Integer.parseInt(matcher.group(1)); //
++            } catch (NumberFormatException e) { //
++                return -1; //
+             }
+         }
+-        return -1;
++        return -1; //
+     }
+ 
+-    private Map<String, String> parseQueryParams(URI uri) {
+-        String query = uri.getQuery();
+-        if (query == null || query.isEmpty()) {
+-            return Map.of();
++    private Map<String, String> parseQueryParams(URI uri) { /* ... sama seperti sebelumnya ... */
++        String query = uri.getQuery(); //
++        if (query == null || query.isEmpty()) { //
++            return Map.of(); //
+         }
+-        return java.util.Arrays.stream(query.split("&"))
+-                .map(s -> s.split("="))
+-                .filter(a -> a.length == 2)
+-                .collect(java.util.stream.Collectors.toMap(a -> a[0], a -> a[1]));
++        return java.util.Arrays.stream(query.split("&")) //
++                .map(s -> s.split("=")) //
++                .filter(a -> a.length == 2) //
++                .collect(java.util.stream.Collectors.toMap(a -> a[0], a -> a[1])); //
+     }
+ }
+\ No newline at end of file
+Index: src/main/java/services/CustomerService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/services/CustomerService.java b/src/main/java/services/CustomerService.java
+new file mode 100644
+--- /dev/null	(date 1750177622742)
++++ b/src/main/java/services/CustomerService.java	(date 1750177622742)
+@@ -0,0 +1,118 @@
++package services;
++
++import dao.BookingDAO;
++import dao.CustomerDAO;
++import dao.ReviewDAO;
++import models.Booking;
++import models.Customer;
++import models.Review;
++
++import java.sql.SQLException;
++import java.util.List;
++
++public class CustomerService {
++    private final CustomerDAO customerDAO;
++    private final BookingDAO bookingDAO;
++    private final ReviewDAO reviewDAO;
++
++    // Konstruktor untuk menginject DAO
++    public CustomerService(CustomerDAO customerDAO, BookingDAO bookingDAO, ReviewDAO reviewDAO) {
++        this.customerDAO = customerDAO;
++        this.bookingDAO = bookingDAO;
++        this.reviewDAO = reviewDAO;
++    }
++
++    public List<Customer> getAllCustomers() {
++        return customerDAO.getAllCustomers();
++    }
++
++    public Customer getCustomerById(int id) {
++        return customerDAO.getCustomerById(id);
++    }
++
++    public List<Booking> getBookingsByCustomerId(int customerId) {
++        return bookingDAO.getBookingsByCustomerId(customerId);
++    }
++
++    public List<Review> getReviewsByCustomerId(int customerId) {
++        return reviewDAO.getReviewsByCustomerId(customerId);
++    }
++
++    public boolean addCustomer(Customer customer) {
++        // Logika bisnis dan validasi untuk menambahkan pelanggan
++        if (customer.getName() == null || customer.getName().isEmpty() ||
++                customer.getEmail() == null || customer.getEmail().isEmpty() ||
++                customer.getPhone() == null || customer.getPhone().isEmpty()) {
++            System.err.println("Validation Error: Missing required fields (name, email, phone)");
++            return false;
++        }
++        if (!customer.getEmail().matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
++            System.err.println("Validation Error: Invalid email format");
++            return false;
++        }
++        if (!customer.getPhone().matches("^\\+?[0-9\\s\\-]+$")) {
++            System.err.println("Validation Error: Invalid phone number format");
++            return false;
++        }
++        return customerDAO.addCustomer(customer);
++    }
++
++    public boolean updateCustomer(Customer customer) {
++        // Logika bisnis dan validasi untuk memperbarui pelanggan
++        if (customer.getName() == null || customer.getName().isEmpty() ||
++                customer.getEmail() == null || customer.getEmail().isEmpty() ||
++                customer.getPhone() == null || customer.getPhone().isEmpty()) {
++            System.err.println("Validation Error: Missing required fields for Customer update");
++            return false;
++        }
++        if (!customer.getEmail().matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
++            System.err.println("Validation Error: Invalid email format");
++            return false;
++        }
++        if (!customer.getPhone().matches("^\\+?[0-9\\s\\-]+$")) {
++            System.err.println("Validation Error: Invalid phone number format");
++            return false;
++        }
++        return customerDAO.updateCustomer(customer);
++    }
++
++    public boolean deleteCustomer(int id) {
++        return customerDAO.deleteCustomer(id);
++    }
++
++    public boolean addBookingForCustomer(int customerId, Booking booking) {
++        // Validasi dan logika bisnis untuk penambahan booking
++        // Hapus pemeriksaan `== null` untuk tipe primitif (roomTypeId, price, finalPrice, hasCheckedIn, hasCheckedOut)
++        if (booking.getCheckinDate() == null || booking.getCheckinDate().isEmpty() ||
++                booking.getCheckoutDate() == null || booking.getCheckoutDate().isEmpty() ||
++                booking.getPaymentStatus() == null || booking.getPaymentStatus().isEmpty()) {
++            System.err.println("Validation Error: Missing required string fields for Booking");
++            return false;
++        }
++        // Jika roomTypeId, price, finalPrice diharapkan memiliki nilai > 0 atau tidak sama dengan nilai "kosong" tertentu,
++        // lakukan validasi numerik, bukan null check.
++        if (booking.getRoomTypeId() <= 0 || booking.getPrice() <= 0 || booking.getFinalPrice() <= 0) {
++            System.err.println("Validation Error: roomTypeId, price, or finalPrice must be positive for Booking");
++            return false;
++        }
++
++        booking.setCustomerId(customerId);
++        return bookingDAO.addBooking(booking);
++    }
++
++    public boolean addReviewForBooking(int bookingId, Review review) {
++        // Validasi dan logika bisnis untuk penambahan review
++        // Hapus pemeriksaan `== null` untuk tipe primitif (star)
++        if (review.getTitle() == null || review.getTitle().isEmpty() ||
++                review.getContent() == null || review.getContent().isEmpty()) {
++            System.err.println("Validation Error: Missing required string fields for Review");
++            return false;
++        }
++        if (review.getStar() < 1 || review.getStar() > 5) {
++            System.err.println("Validation Error: Star rating must be between 1 and 5");
++            return false;
++        }
++        review.setBookingId(bookingId);
++        return reviewDAO.addReview(review);
++    }
++}
+\ No newline at end of file
+Index: src/main/java/services/VoucherService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/services/VoucherService.java b/src/main/java/services/VoucherService.java
+new file mode 100644
+--- /dev/null	(date 1750177860593)
++++ b/src/main/java/services/VoucherService.java	(date 1750177860593)
+@@ -0,0 +1,69 @@
++package services;
++
++import dao.VoucherDAO;
++import models.Voucher;
++
++import java.util.List;
++import java.util.regex.Pattern;
++
++public class VoucherService {
++    private final VoucherDAO voucherDAO;
++
++    public VoucherService(VoucherDAO voucherDAO) {
++        this.voucherDAO = voucherDAO;
++    }
++
++    public List<Voucher> getAllVouchers() {
++        return voucherDAO.getAllVouchers();
++    }
++
++    public Voucher getVoucherById(int id) {
++        return voucherDAO.getVoucherById(id);
++    }
++
++    public boolean addVoucher(Voucher voucher) {
++        if (voucher.getCode() == null || voucher.getCode().isEmpty() ||
++                voucher.getDescription() == null || voucher.getDescription().isEmpty() ||
++                voucher.getStartDate() == null || voucher.getStartDate().isEmpty() ||
++                voucher.getEndDate() == null || voucher.getEndDate().isEmpty() ||
++                voucher.getDiscount() < 0) { // Perbaikan: Cek nilai diskon yang valid, bukan null
++            System.err.println("Validation Error: Missing required fields for Voucher or invalid discount value.");
++            return false;
++        }
++
++        // Pindahkan validasi format tanggal ke dalam metode
++        Pattern dateFormat = Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
++        if (!dateFormat.matcher(voucher.getStartDate()).matches() || !dateFormat.matcher(voucher.getEndDate()).matches()) {
++            System.err.println("Validation Error: Invalid date format. Use YYYY-MM-DD hh:mm:ss");
++            return false;
++        }
++
++        // Panggil DAO setelah semua validasi berhasil
++        return voucherDAO.addVoucher(voucher);
++    }
++
++    public boolean updateVoucher(Voucher voucher) {
++        if (voucher.getCode() == null || voucher.getCode().isEmpty() ||
++                voucher.getDescription() == null || voucher.getDescription().isEmpty() ||
++                voucher.getStartDate() == null || voucher.getStartDate().isEmpty() ||
++                voucher.getEndDate() == null || voucher.getEndDate().isEmpty() ||
++                voucher.getDiscount() < 0) { // Perbaikan: Cek nilai diskon yang valid, bukan null
++            System.err.println("Validation Error: Missing required fields for Voucher update or invalid discount value.");
++            return false;
++        }
++
++        // Pindahkan validasi format tanggal ke dalam metode
++        Pattern dateFormat = Pattern.compile("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
++        if (!dateFormat.matcher(voucher.getStartDate()).matches() || !dateFormat.matcher(voucher.getEndDate()).matches()) {
++            System.err.println("Validation Error: Invalid date format. Use YYYY-MM-DD hh:mm:ss");
++            return false;
++        }
++
++        // Panggil DAO setelah semua validasi berhasil
++        return voucherDAO.updateVoucher(voucher);
++    }
++
++    public boolean deleteVoucher(int id) {
++        return voucherDAO.deleteVoucher(id);
++    }
++}
+\ No newline at end of file
+Index: src/main/java/server/handlers/CustomerHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package server.handlers;\r\n\r\nimport com.sun.net.httpserver.HttpExchange;\r\nimport com.sun.net.httpserver.HttpHandler;\r\nimport dao.BookingDAO;\r\nimport dao.CustomerDAO;\r\nimport dao.ReviewDAO;\r\nimport models.Booking;\r\nimport models.Customer;\r\nimport models.Review;\r\nimport server.Request;\r\nimport server.Response;\r\n\r\nimport java.io.IOException;\r\nimport java.net.HttpURLConnection;\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.regex.Matcher;\r\nimport java.util.regex.Pattern;\r\n\r\npublic class CustomerHandler implements HttpHandler {\r\n    private final CustomerDAO customerDAO = new CustomerDAO();\r\n    private final BookingDAO bookingDAO = new BookingDAO();\r\n    private final ReviewDAO reviewDAO = new ReviewDAO();\r\n\r\n    private int extractIdFromPath(String path, String regexPattern) {\r\n        Pattern pattern = Pattern.compile(regexPattern);\r\n        Matcher matcher = pattern.matcher(path);\r\n\r\n        if (matcher.find() && matcher.groupCount() >= 1) {\r\n            try {\r\n                return Integer.parseInt(matcher.group(1));\r\n            } catch (NumberFormatException e) {\r\n                return -1;\r\n            }\r\n        }\r\n        return -1;\r\n    }\r\n\r\n    @Override\r\n    public void handle(HttpExchange httpExchange) throws IOException {\r\n        Request req = new Request(httpExchange);\r\n        Response res = new Response(httpExchange);\r\n        String path = httpExchange.getRequestURI().getPath();\r\n        String method = req.getRequestMethod();\r\n\r\n        try {\r\n            if (\"GET\".equals(method)) {\r\n                if (path.equals(\"/customers\")) { // GET /customers\r\n                    handleGetAllCustomers(res);\r\n                } else if (path.matches(\"/customers/\\\\d+\")) { // GET /customers/{id}\r\n                    handleGetCustomerById(req, res);\r\n                } else if (path.matches(\"/customers/\\\\d+/bookings\")) { // GET /customers/{id}/bookings\r\n                    handleGetBookingsByCustomerId(req, res);\r\n                } else if (path.matches(\"/customers/\\\\d+/reviews\")) { // GET /customers/{id}/reviews\r\n                    handleGetReviewsByCustomerId(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for GET on Customer\");\r\n                }\r\n            } else if (\"POST\".equals(method)) {\r\n                if (path.equals(\"/customers\")) { // POST /customers\r\n                    handleAddCustomer(req, res);\r\n                } else if (path.matches(\"/customers/\\\\d+/bookings\")) { // POST /customers/{id}/bookings\r\n                    handleAddBookingForCustomer(req, res);\r\n                } else if (path.matches(\"/customers/\\\\d+/bookings/\\\\d+/reviews\")) { // POST /customers/{id}/bookings/{id}/reviews\r\n                    handleAddReviewForBooking(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for POST on Customer\");\r\n                }\r\n            } else if (\"PUT\".equals(method)) {\r\n                if (path.matches(\"/customers/\\\\d+\")) { // PUT /customers/{id}\r\n                    handleUpdateCustomer(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for PUT on Customer\");\r\n                }\r\n            } else if (\"DELETE\".equals(method)) {\r\n                if (path.matches(\"/customers/\\\\d+\")) { // DELETE /customers/{id}\r\n                    handleDeleteCustomer(req, res);\r\n                } else {\r\n                    res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Endpoint not found for DELETE on Customer\");\r\n                }\r\n            } else {\r\n                res.sendError(405, \"Method Not Allowed\");\r\n            }\r\n        } catch (Exception e) {\r\n            System.err.println(\"Error in CustomerHandler: \" + e.getMessage());\r\n            e.printStackTrace();\r\n            res.sendError(HttpURLConnection.HTTP_INTERNAL_ERROR, \"Internal Server Error: \" + e.getMessage());\r\n        }\r\n    }\r\n\r\n    private void handleGetAllCustomers(Response res) throws IOException {\r\n        List<Customer> customers = customerDAO.getAllCustomers();\r\n        res.sendJson(HttpURLConnection.HTTP_OK, customers);\r\n    }\r\n\r\n    private void handleGetCustomerById(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/customers/(\\\\d+)\");\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Customer ID\");\r\n            return;\r\n        }\r\n        Customer customer = customerDAO.getCustomerById(id);\r\n        if (customer != null) {\r\n            res.sendJson(HttpURLConnection.HTTP_OK, customer);\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Customer not found\");\r\n        }\r\n    }\r\n\r\n    private void handleGetBookingsByCustomerId(Request req, Response res) throws IOException {\r\n        int customerId = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/customers/(\\\\d+)/bookings\");\r\n        if (customerId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Customer ID\");\r\n            return;\r\n        }\r\n        List<Booking> bookings = bookingDAO.getBookingsByCustomerId(customerId);\r\n        res.sendJson(HttpURLConnection.HTTP_OK, bookings);\r\n    }\r\n\r\n    private void handleGetReviewsByCustomerId(Request req, Response res) throws IOException {\r\n        int customerId = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/customers/(\\\\d+)/reviews\");\r\n        if (customerId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Customer ID\");\r\n            return;\r\n        }\r\n        List<Review> reviews = reviewDAO.getReviewsByCustomerId(customerId);\r\n        res.sendJson(HttpURLConnection.HTTP_OK, reviews);\r\n    }\r\n\r\n    private void handleAddCustomer(Request req, Response res) throws IOException {\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n        String name = (String) reqJsonMap.get(\"name\");\r\n        String email = (String) reqJsonMap.get(\"email\");\r\n        String phone = (String) reqJsonMap.get(\"phone\");\r\n\r\n        if (name == null || name.isEmpty() || email == null || email.isEmpty() || phone == null || phone.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields (name, email, phone)\");\r\n            return;\r\n        }\r\n\r\n        // Basic email validation\r\n        if (!email.matches(\"^[\\\\w!#$%&'*+/=?`{|}~^-]+(?:\\\\.[\\\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\\\.)+[a-zA-Z]{2,6}$\")) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid email format\");\r\n            return;\r\n        }\r\n\r\n        // Basic phone number validation (e.g., starts with +, then digits)\r\n        if (!phone.matches(\"^\\\\+?[0-9\\\\s\\\\-]+$\")) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid phone number format\");\r\n            return;\r\n        }\r\n        Customer newCustomer = new Customer(0, name, email, phone);\r\n\r\n        if (customerDAO.addCustomer(newCustomer)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_CREATED, \"Customer added successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Failed to add customer or invalid data\");\r\n        }\r\n    }\r\n\r\n    private void handleAddBookingForCustomer(Request req, Response res) throws IOException {\r\n        int customerId = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/customers/(\\\\d+)/bookings\");\r\n        if (customerId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Customer ID\");\r\n            return;\r\n        }\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n        Integer roomTypeId = (Integer) reqJsonMap.get(\"roomTypeId\");\r\n        String checkinDate = (String) reqJsonMap.get(\"checkinDate\");\r\n        String checkoutDate = (String) reqJsonMap.get(\"checkoutDate\");\r\n        Integer price = (Integer) reqJsonMap.get(\"price\");\r\n        Integer voucherId = (Integer) reqJsonMap.get(\"voucherId\");\r\n        Integer finalPrice = (Integer) reqJsonMap.get(\"finalPrice\");\r\n        String paymentStatus = (String) reqJsonMap.get(\"paymentStatus\");\r\n        Boolean hasCheckedIn = (Boolean) reqJsonMap.get(\"hasCheckedIn\");\r\n        Boolean hasCheckedOut = (Boolean) reqJsonMap.get(\"hasCheckedOut\");\r\n\r\n        if (roomTypeId == null || checkinDate == null || checkinDate.isEmpty() || checkoutDate == null || checkoutDate.isEmpty() ||\r\n                price == null || finalPrice == null || paymentStatus == null || paymentStatus.isEmpty() || hasCheckedIn == null || hasCheckedOut == null) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields for Booking\");\r\n            return;\r\n        }\r\n        Booking newBooking = new Booking(\r\n                0, customerId, roomTypeId, checkinDate, checkoutDate,\r\n                price, voucherId, finalPrice, paymentStatus,\r\n                hasCheckedIn ? 1 : 0, hasCheckedOut ? 1 : 0\r\n        );\r\n\r\n        if (bookingDAO.addBooking(newBooking)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_CREATED, \"Booking added successfully for customer \" + customerId);\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Failed to add booking or invalid data\");\r\n        }\r\n    }\r\n\r\n    private void handleAddReviewForBooking(Request req, Response res) throws IOException {\r\n        Pattern pattern = Pattern.compile(\"/customers/\\\\d+/bookings/(\\\\d+)/reviews\");\r\n        Matcher matcher = pattern.matcher(req.getHttpExchange().getRequestURI().getPath());\r\n\r\n        int bookingId = -1;\r\n        if (matcher.find() && matcher.groupCount() == 1) {\r\n            bookingId = Integer.parseInt(matcher.group(1));\r\n        }\r\n\r\n        if (bookingId == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Booking ID in path\");\r\n            return;\r\n        }\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n        Integer star = (Integer) reqJsonMap.get(\"star\");\r\n        String title = (String) reqJsonMap.get(\"title\");\r\n        String content = (String) reqJsonMap.get(\"content\");\r\n\r\n        if (star == null || title == null || title.isEmpty() || content == null || content.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields for Review\");\r\n            return;\r\n        }\r\n\r\n        if (star < 1 || star > 5) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Star rating must be between 1 and 5\");\r\n            return;\r\n        }\r\n        Review newReview = new Review(bookingId, star, title, content);\r\n\r\n        if (reviewDAO.addReview(newReview)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_CREATED, \"Review added successfully for booking \" + bookingId);\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Failed to add review or invalid data\");\r\n        }\r\n    }\r\n\r\n    private void handleUpdateCustomer(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/customers/(\\\\d+)\");\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Customer ID\");\r\n            return;\r\n        }\r\n        Map<String, Object> reqJsonMap = req.getJSON();\r\n        String name = (String) reqJsonMap.get(\"name\");\r\n        String email = (String) reqJsonMap.get(\"email\");\r\n        String phone = (String) reqJsonMap.get(\"phone\");\r\n\r\n        if (name == null || name.isEmpty() || email == null || email.isEmpty() || phone == null || phone.isEmpty()) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Missing required fields for Customer update\");\r\n            return;\r\n        }\r\n\r\n        if (!email.matches(\"^[\\\\w!#$%&'*+/=?`{|}~^-]+(?:\\\\.[\\\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\\\.)+[a-zA-Z]{2,6}$\")) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid email format\");\r\n            return;\r\n        }\r\n\r\n        if (!phone.matches(\"^\\\\+?[0-9\\\\s\\\\-]+$\")) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid phone number format\");\r\n            return;\r\n        }\r\n        Customer updatedCustomer = new Customer(id, name, email, phone);\r\n\r\n        if (customerDAO.updateCustomer(updatedCustomer)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_OK, \"Customer updated successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Customer not found or failed to update\");\r\n        }\r\n    }\r\n\r\n    private void handleDeleteCustomer(Request req, Response res) throws IOException {\r\n        int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), \"/customers/(\\\\d+)\");\r\n\r\n        if (id == -1) {\r\n            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, \"Invalid Customer ID\");\r\n            return;\r\n        }\r\n\r\n        if (customerDAO.deleteCustomer(id)) {\r\n            res.sendSuccess(HttpURLConnection.HTTP_OK, \"Customer deleted successfully\");\r\n        } else {\r\n            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, \"Customer not found or failed to delete\");\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/server/handlers/CustomerHandler.java b/src/main/java/server/handlers/CustomerHandler.java
+--- a/src/main/java/server/handlers/CustomerHandler.java	(revision 0e48c44875f91e44224bcf98f5cb5405506bf46d)
++++ b/src/main/java/server/handlers/CustomerHandler.java	(date 1750177507855)
+@@ -2,14 +2,12 @@
+ 
+ import com.sun.net.httpserver.HttpExchange;
+ import com.sun.net.httpserver.HttpHandler;
+-import dao.BookingDAO;
+-import dao.CustomerDAO;
+-import dao.ReviewDAO;
+ import models.Booking;
+ import models.Customer;
+ import models.Review;
+ import server.Request;
+ import server.Response;
++import services.CustomerService; // Import service baru
+ 
+ import java.io.IOException;
+ import java.net.HttpURLConnection;
+@@ -19,14 +17,18 @@
+ import java.util.regex.Pattern;
+ 
+ public class CustomerHandler implements HttpHandler {
+-    private final CustomerDAO customerDAO = new CustomerDAO();
+-    private final BookingDAO bookingDAO = new BookingDAO();
+-    private final ReviewDAO reviewDAO = new ReviewDAO();
++
++    // Ganti DAO dengan Service
++    private final CustomerService customerService;
+ 
+-    private int extractIdFromPath(String path, String regexPattern) {
++    // Konstruktor untuk menginject Service
++    public CustomerHandler(CustomerService customerService) {
++        this.customerService = customerService;
++    }
++
++    private int extractIdFromPath(String path, String regexPattern) { /* ... sama seperti sebelumnya ... */
+         Pattern pattern = Pattern.compile(regexPattern);
+         Matcher matcher = pattern.matcher(path);
+-
+         if (matcher.find() && matcher.groupCount() >= 1) {
+             try {
+                 return Integer.parseInt(matcher.group(1));
+@@ -46,35 +48,35 @@
+ 
+         try {
+             if ("GET".equals(method)) {
+-                if (path.equals("/customers")) { // GET /customers
++                if (path.equals("/customers")) {
+                     handleGetAllCustomers(res);
+-                } else if (path.matches("/customers/\\d+")) { // GET /customers/{id}
++                } else if (path.matches("/customers/\\d+")) {
+                     handleGetCustomerById(req, res);
+-                } else if (path.matches("/customers/\\d+/bookings")) { // GET /customers/{id}/bookings
++                } else if (path.matches("/customers/\\d+/bookings")) {
+                     handleGetBookingsByCustomerId(req, res);
+-                } else if (path.matches("/customers/\\d+/reviews")) { // GET /customers/{id}/reviews
++                } else if (path.matches("/customers/\\d+/reviews")) {
+                     handleGetReviewsByCustomerId(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for GET on Customer");
+                 }
+             } else if ("POST".equals(method)) {
+-                if (path.equals("/customers")) { // POST /customers
++                if (path.equals("/customers")) {
+                     handleAddCustomer(req, res);
+-                } else if (path.matches("/customers/\\d+/bookings")) { // POST /customers/{id}/bookings
++                } else if (path.matches("/customers/\\d+/bookings")) {
+                     handleAddBookingForCustomer(req, res);
+-                } else if (path.matches("/customers/\\d+/bookings/\\d+/reviews")) { // POST /customers/{id}/bookings/{id}/reviews
++                } else if (path.matches("/customers/\\d+/bookings/\\d+/reviews")) {
+                     handleAddReviewForBooking(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for POST on Customer");
+                 }
+             } else if ("PUT".equals(method)) {
+-                if (path.matches("/customers/\\d+")) { // PUT /customers/{id}
++                if (path.matches("/customers/\\d+")) {
+                     handleUpdateCustomer(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for PUT on Customer");
+                 }
+             } else if ("DELETE".equals(method)) {
+-                if (path.matches("/customers/\\d+")) { // DELETE /customers/{id}
++                if (path.matches("/customers/\\d+")) {
+                     handleDeleteCustomer(req, res);
+                 } else {
+                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for DELETE on Customer");
+@@ -90,7 +92,7 @@
+     }
+ 
+     private void handleGetAllCustomers(Response res) throws IOException {
+-        List<Customer> customers = customerDAO.getAllCustomers();
++        List<Customer> customers = customerService.getAllCustomers(); // Memanggil service
+         res.sendJson(HttpURLConnection.HTTP_OK, customers);
+     }
+ 
+@@ -100,7 +102,7 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
+             return;
+         }
+-        Customer customer = customerDAO.getCustomerById(id);
++        Customer customer = customerService.getCustomerById(id); // Memanggil service
+         if (customer != null) {
+             res.sendJson(HttpURLConnection.HTTP_OK, customer);
+         } else {
+@@ -114,7 +116,7 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
+             return;
+         }
+-        List<Booking> bookings = bookingDAO.getBookingsByCustomerId(customerId);
++        List<Booking> bookings = customerService.getBookingsByCustomerId(customerId); // Memanggil service
+         res.sendJson(HttpURLConnection.HTTP_OK, bookings);
+     }
+ 
+@@ -124,7 +126,7 @@
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
+             return;
+         }
+-        List<Review> reviews = reviewDAO.getReviewsByCustomerId(customerId);
++        List<Review> reviews = customerService.getReviewsByCustomerId(customerId); // Memanggil service
+         res.sendJson(HttpURLConnection.HTTP_OK, reviews);
+     }
+ 
+@@ -134,28 +136,16 @@
+         String email = (String) reqJsonMap.get("email");
+         String phone = (String) reqJsonMap.get("phone");
+ 
+-        if (name == null || name.isEmpty() || email == null || email.isEmpty() || phone == null || phone.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields (name, email, phone)");
+-            return;
+-        }
+-
+-        // Basic email validation
+-        if (!email.matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid email format");
+-            return;
+-        }
+-
+-        // Basic phone number validation (e.g., starts with +, then digits)
+-        if (!phone.matches("^\\+?[0-9\\s\\-]+$")) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid phone number format");
+-            return;
+-        }
++        // Di sini, kita membuat objek Customer dari request
+         Customer newCustomer = new Customer(0, name, email, phone);
+ 
+-        if (customerDAO.addCustomer(newCustomer)) {
++        // Validasi dipindahkan ke CustomerService. Kita hanya memeriksa return value.
++        if (customerService.addCustomer(newCustomer)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Customer added successfully");
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add customer or invalid data");
++            // Service akan mencetak error validasi ke System.err.
++            // Di sini kita bisa memberikan pesan error umum atau mengambil pesan dari service jika memungkinkan.
++            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add customer. Check provided data.");
+         }
+     }
+ 
+@@ -176,21 +166,17 @@
+         Boolean hasCheckedIn = (Boolean) reqJsonMap.get("hasCheckedIn");
+         Boolean hasCheckedOut = (Boolean) reqJsonMap.get("hasCheckedOut");
+ 
+-        if (roomTypeId == null || checkinDate == null || checkinDate.isEmpty() || checkoutDate == null || checkoutDate.isEmpty() ||
+-                price == null || finalPrice == null || paymentStatus == null || paymentStatus.isEmpty() || hasCheckedIn == null || hasCheckedOut == null) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Booking");
+-            return;
+-        }
++        // Buat objek Booking
+         Booking newBooking = new Booking(
+                 0, customerId, roomTypeId, checkinDate, checkoutDate,
+                 price, voucherId, finalPrice, paymentStatus,
+-                hasCheckedIn ? 1 : 0, hasCheckedOut ? 1 : 0
++                hasCheckedIn != null && hasCheckedIn ? 1 : 0, hasCheckedOut != null && hasCheckedOut ? 1 : 0
+         );
+ 
+-        if (bookingDAO.addBooking(newBooking)) {
++        if (customerService.addBookingForCustomer(customerId, newBooking)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Booking added successfully for customer " + customerId);
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add booking or invalid data");
++            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add booking or invalid data. Check required fields.");
+         }
+     }
+ 
+@@ -212,23 +198,15 @@
+         String title = (String) reqJsonMap.get("title");
+         String content = (String) reqJsonMap.get("content");
+ 
+-        if (star == null || title == null || title.isEmpty() || content == null || content.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Review");
+-            return;
+-        }
+-
+-        if (star < 1 || star > 5) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Star rating must be between 1 and 5");
+-            return;
+-        }
+         Review newReview = new Review(bookingId, star, title, content);
+ 
+-        if (reviewDAO.addReview(newReview)) {
++        if (customerService.addReviewForBooking(bookingId, newReview)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Review added successfully for booking " + bookingId);
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add review or invalid data");
++            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add review or invalid data. Check required fields and star rating.");
+         }
+     }
++
+ 
+     private void handleUpdateCustomer(Request req, Response res) throws IOException {
+         int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), "/customers/(\\d+)");
+@@ -241,38 +219,28 @@
+         String email = (String) reqJsonMap.get("email");
+         String phone = (String) reqJsonMap.get("phone");
+ 
+-        if (name == null || name.isEmpty() || email == null || email.isEmpty() || phone == null || phone.isEmpty()) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Customer update");
+-            return;
+-        }
+-
+-        if (!email.matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid email format");
+-            return;
+-        }
+-
+-        if (!phone.matches("^\\+?[0-9\\s\\-]+$")) {
+-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid phone number format");
+-            return;
+-        }
+         Customer updatedCustomer = new Customer(id, name, email, phone);
+ 
+-        if (customerDAO.updateCustomer(updatedCustomer)) {
++        if (customerService.updateCustomer(updatedCustomer)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_OK, "Customer updated successfully");
+         } else {
+-            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Customer not found or failed to update");
++            // Periksa apakah customer ditemukan sebelum mencoba update
++            if (customerService.getCustomerById(id) == null) {
++                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Customer not found");
++            } else {
++                res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to update customer. Check provided data.");
++            }
+         }
+     }
+ 
+     private void handleDeleteCustomer(Request req, Response res) throws IOException {
+         int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), "/customers/(\\d+)");
+-
+         if (id == -1) {
+             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
+             return;
+         }
+ 
+-        if (customerDAO.deleteCustomer(id)) {
++        if (customerService.deleteCustomer(id)) { // Memanggil service
+             res.sendSuccess(HttpURLConnection.HTTP_OK, "Customer deleted successfully");
+         } else {
+             res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Customer not found or failed to delete");

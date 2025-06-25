@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="50330016-a022-4a6b-8b82-cef80067f245" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/models/Booking.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/models/Booking.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/models/Customer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/models/Customer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/models/Review.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/models/Review.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/models/RoomType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/models/RoomType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/models/Villa.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/models/Villa.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/models/Voucher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/models/Voucher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/server/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/server/MainApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/server/handlers/CustomerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/server/handlers/CustomerHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/server/handlers/VillaHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/server/handlers/VillaHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/server/handlers/VoucherHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/server/handlers/VoucherHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/server/router/Router.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/server/router/Router.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/services/CustomerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/CustomerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/services/VillaService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/VillaService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/services/VoucherService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/services/VoucherService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/database/villa.db" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/database/villa.db" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Duelisgood&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:/dwjun10r/Project-PBO-2.git&quot;,
+    &quot;accountId&quot;: &quot;334aacfd-27eb-40be-aaf9-8a642775022a&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2yduCgQfYgPSJOcpPzwEQ026uuX" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.MainApp.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="50330016-a022-4a6b-8b82-cef80067f245" name="Changes" comment="" />
+      <created>1750176645460</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1750176645460</updated>
+      <workItem from="1750176646544" duration="3815000" />
+      <workItem from="1750820108332" duration="3120000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
