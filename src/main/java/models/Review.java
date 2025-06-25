@@ -1,19 +1,21 @@
 package models;
 
 public class Review {
-    private int bookingId; // PRIMARY KEY, Foreign Key to bookings.id
-    private int star;      // NOT NULL
-    private String title;  // NOT NULL
-    private String content; // NOT NULL
+    private int bookingId;
+    private int star;
+    private String title;
+    private String content;
 
+    //---------------Start Constructor----------------
     public Review(int bookingId, int star, String title, String content) {
         this.bookingId = bookingId;
         this.star = star;
         this.title = title;
         this.content = content;
     }
+    //---------------End Constructor----------------
 
-    // Getters
+    //---------------Start Getters----------------
     public int getBookingId() {
         return bookingId;
     }
@@ -29,8 +31,9 @@ public class Review {
     public String getContent() {
         return content;
     }
+    //---------------End Getters----------------
 
-    // Setters
+    //---------------Start Setters----------------
     public void setBookingId(int bookingId) {
         this.bookingId = bookingId;
     }
@@ -46,6 +49,7 @@ public class Review {
     public void setContent(String content) {
         this.content = content;
     }
+    //---------------End Setters----------------
 
     @Override
     public String toString() {

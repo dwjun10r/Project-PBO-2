@@ -16,7 +16,7 @@ public class RoomType {
     private boolean hasHotwater;
     private boolean hasFridge;
 
-
+    //---------------Start Constructor untuk data dari DB (dengan ID)----------------
     public RoomType(int id, int villaId, String name, int quantity, int capacity, int price,
                     String bedSize, int hasDesk, int hasAc, int hasTv, int hasWifi,
                     int hasShower, int hasHotwater, int hasFridge) {
@@ -35,36 +35,53 @@ public class RoomType {
         this.hasHotwater = (hasHotwater == 1);
         this.hasFridge = (hasFridge == 1);
     }
+    //---------------End Constructor untuk data dari DB (dengan ID)----------------
 
 
+
+    //---------------Start Getters dan Setters----------------------
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+
     public int getVillaId() { return villaId; }
     public void setVillaId(int villaId) { this.villaId = villaId; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
+
     public int getCapacity() { return capacity; }
     public void setCapacity(int capacity) { this.capacity = capacity; }
+
     public int getPrice() { return price; }
     public void setPrice(int price) { this.price = price; }
+
     public String getBedSize() { return bedSize; }
     public void setBedSize(String bedSize) { this.bedSize = bedSize; }
+
     public boolean isHasDesk() { return hasDesk; }
     public void setHasDesk(boolean hasDesk) { this.hasDesk = hasDesk; }
+
     public boolean isHasAc() { return hasAc; }
     public void setHasAc(boolean hasAc) { this.hasAc = hasAc; }
+
     public boolean isHasTv() { return hasTv; }
     public void setHasTv(boolean hasTv) { this.hasTv = hasTv; }
+
     public boolean isHasWifi() { return hasWifi; }
     public void setHasWifi(boolean hasWifi) { this.hasWifi = hasWifi; }
+
     public boolean isHasShower() { return hasShower; }
     public void setHasShower(boolean hasShower) { this.hasShower = hasShower; }
+
     public boolean isHasHotwater() { return hasHotwater; }
     public void setHasHotwater(boolean hasHotwater) { this.hasHotwater = hasHotwater; }
+
     public boolean isHasFridge() { return hasFridge; }
     public void setHasFridge(boolean hasFridge) { this.hasFridge = hasFridge; }
+    //---------------End Getters dan Setters----------------------
 
 
     @Override

@@ -7,12 +7,12 @@ import java.sql.Statement;
 
 public class MainApp {
     public static void main(String[] args) throws Exception {
-        int port = 8080; // Default port
+        int port = 8080; // Port
         if (args.length == 1) {
             port = Integer.parseInt(args[0]);
         }
 
-        // Optional: Kode untuk cek koneksi atau tabel
+        // -----------------Kode untuk cek koneksi atau tabel-----------------
         try (Connection conn = DbConnection.connect()) {
             if (conn != null) {
                 Statement stmt = conn.createStatement();
@@ -27,6 +27,6 @@ public class MainApp {
         }
 
         System.out.printf("Listening on port: %s...\n", port);
-        new Server(port); // Memulai server dari kelas Server baru
+        new Server(port);
     }
 }

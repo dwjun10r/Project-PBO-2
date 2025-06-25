@@ -14,6 +14,7 @@ public class Booking {
     private boolean hasCheckedOut;
 
 
+    //---------------Start Constructor untuk data dari DB (dengan ID)----------------
     public Booking(int id, int customerId, int roomTypeId, String checkinDate, String checkoutDate,
                    int price, Integer voucherId, int finalPrice, String paymentStatus,
                    int hasCheckedIn, int hasCheckedOut) {
@@ -26,33 +27,49 @@ public class Booking {
         this.voucherId = voucherId;
         this.finalPrice = finalPrice;
         this.paymentStatus = paymentStatus;
+        // Konversi nilai integer (0/1) dari database menjadi boolean
         this.hasCheckedIn = (hasCheckedIn == 1);
         this.hasCheckedOut = (hasCheckedOut == 1);
     }
+    //---------------End Constructor untuk data dari DB (dengan ID)----------------
 
 
+
+    //---------------Start Getters dan Setters----------------------
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+
     public int getCustomerId() { return customerId; }
     public void setCustomerId(int customerId) { this.customerId = customerId; }
+
     public int getRoomTypeId() { return roomTypeId; }
     public void setRoomTypeId(int roomTypeId) { this.roomTypeId = roomTypeId; }
+
     public String getCheckinDate() { return checkinDate; }
     public void setCheckinDate(String checkinDate) { this.checkinDate = checkinDate; }
+
     public String getCheckoutDate() { return checkoutDate; }
     public void setCheckoutDate(String checkoutDate) { this.checkoutDate = checkoutDate; }
+
     public int getPrice() { return price; }
     public void setPrice(int price) { this.price = price; }
+
     public Integer getVoucherId() { return voucherId; }
     public void setVoucherId(Integer voucherId) { this.voucherId = voucherId; }
+
     public int getFinalPrice() { return finalPrice; }
     public void setFinalPrice(int finalPrice) { this.finalPrice = finalPrice; }
+
     public String getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
     public boolean isHasCheckedIn() { return hasCheckedIn; }
     public void setHasCheckedIn(boolean hasCheckedIn) { this.hasCheckedIn = hasCheckedIn; }
+
     public boolean isHasCheckedOut() { return hasCheckedOut; }
     public void setHasCheckedOut(boolean hasCheckedOut) { this.hasCheckedOut = hasCheckedOut; }
+    //---------------End Getters dan Setters----------------------
+
 
     @Override
     public String toString() {

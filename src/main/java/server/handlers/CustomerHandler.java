@@ -2,12 +2,14 @@ package server.handlers;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import dao.BookingDAO;
+import dao.CustomerDAO;
+import dao.ReviewDAO;
 import models.Booking;
 import models.Customer;
 import models.Review;
 import server.Request;
 import server.Response;
-import services.CustomerService; // Import service baru
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -17,16 +19,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CustomerHandler implements HttpHandler {
-
-    private final CustomerService customerService;
-
-    public CustomerHandler(CustomerService customerService) {
-        this.customerService = customerService;
-    }
+    private final CustomerDAO customerDAO = new CustomerDAO();
+    private final BookingDAO bookingDAO = new BookingDAO();
+    private final ReviewDAO reviewDAO = new ReviewDAO();
 
     private int extractIdFromPath(String path, String regexPattern) {
         Pattern pattern = Pattern.compile(regexPattern);
         Matcher matcher = pattern.matcher(path);
+
         if (matcher.find() && matcher.groupCount() >= 1) {
             try {
                 return Integer.parseInt(matcher.group(1));
@@ -46,35 +46,35 @@ public class CustomerHandler implements HttpHandler {
 
         try {
             if ("GET".equals(method)) {
-                if (path.equals("/customers")) {
+                if (path.equals("/customers")) { // GET /customers
                     handleGetAllCustomers(res);
-                } else if (path.matches("/customers/\\d+")) {
+                } else if (path.matches("/customers/\\d+")) { // GET /customers/{id}
                     handleGetCustomerById(req, res);
-                } else if (path.matches("/customers/\\d+/bookings")) {
+                } else if (path.matches("/customers/\\d+/bookings")) { // GET /customers/{id}/bookings
                     handleGetBookingsByCustomerId(req, res);
-                } else if (path.matches("/customers/\\d+/reviews")) {
+                } else if (path.matches("/customers/\\d+/reviews")) { // GET /customers/{id}/reviews
                     handleGetReviewsByCustomerId(req, res);
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for GET on Customer");
                 }
             } else if ("POST".equals(method)) {
-                if (path.equals("/customers")) {
+                if (path.equals("/customers")) { // POST /customers
                     handleAddCustomer(req, res);
-                } else if (path.matches("/customers/\\d+/bookings")) {
+                } else if (path.matches("/customers/\\d+/bookings")) { // POST /customers/{id}/bookings
                     handleAddBookingForCustomer(req, res);
-                } else if (path.matches("/customers/\\d+/bookings/\\d+/reviews")) {
+                } else if (path.matches("/customers/\\d+/bookings/\\d+/reviews")) { // POST /customers/{id}/bookings/{id}/reviews
                     handleAddReviewForBooking(req, res);
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for POST on Customer");
                 }
             } else if ("PUT".equals(method)) {
-                if (path.matches("/customers/\\d+")) {
+                if (path.matches("/customers/\\d+")) { // PUT /customers/{id}
                     handleUpdateCustomer(req, res);
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for PUT on Customer");
                 }
             } else if ("DELETE".equals(method)) {
-                if (path.matches("/customers/\\d+")) {
+                if (path.matches("/customers/\\d+")) { // DELETE /customers/{id}
                     handleDeleteCustomer(req, res);
                 } else {
                     res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Endpoint not found for DELETE on Customer");
@@ -90,7 +90,7 @@ public class CustomerHandler implements HttpHandler {
     }
 
     private void handleGetAllCustomers(Response res) throws IOException {
-        List<Customer> customers = customerService.getAllCustomers();
+        List<Customer> customers = customerDAO.getAllCustomers();
         res.sendJson(HttpURLConnection.HTTP_OK, customers);
     }
 
@@ -100,7 +100,7 @@ public class CustomerHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
             return;
         }
-        Customer customer = customerService.getCustomerById(id);
+        Customer customer = customerDAO.getCustomerById(id);
         if (customer != null) {
             res.sendJson(HttpURLConnection.HTTP_OK, customer);
         } else {
@@ -114,7 +114,7 @@ public class CustomerHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
             return;
         }
-        List<Booking> bookings = customerService.getBookingsByCustomerId(customerId);
+        List<Booking> bookings = bookingDAO.getBookingsByCustomerId(customerId);
         res.sendJson(HttpURLConnection.HTTP_OK, bookings);
     }
 
@@ -124,7 +124,7 @@ public class CustomerHandler implements HttpHandler {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
             return;
         }
-        List<Review> reviews = customerService.getReviewsByCustomerId(customerId);
+        List<Review> reviews = reviewDAO.getReviewsByCustomerId(customerId);
         res.sendJson(HttpURLConnection.HTTP_OK, reviews);
     }
 
@@ -134,12 +134,28 @@ public class CustomerHandler implements HttpHandler {
         String email = (String) reqJsonMap.get("email");
         String phone = (String) reqJsonMap.get("phone");
 
+        if (name == null || name.isEmpty() || email == null || email.isEmpty() || phone == null || phone.isEmpty()) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields (name, email, phone)");
+            return;
+        }
+
+        // Basic email validation
+        if (!email.matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid email format");
+            return;
+        }
+
+        // Basic phone number validation (e.g., starts with +, then digits)
+        if (!phone.matches("^\\+?[0-9\\s\\-]+$")) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid phone number format");
+            return;
+        }
         Customer newCustomer = new Customer(0, name, email, phone);
 
-        if (customerService.addCustomer(newCustomer)) { // Memanggil service
+        if (customerDAO.addCustomer(newCustomer)) {
             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Customer added successfully");
         } else {
-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add customer. Check provided data.");
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add customer or invalid data");
         }
     }
 
@@ -160,16 +176,21 @@ public class CustomerHandler implements HttpHandler {
         Boolean hasCheckedIn = (Boolean) reqJsonMap.get("hasCheckedIn");
         Boolean hasCheckedOut = (Boolean) reqJsonMap.get("hasCheckedOut");
 
+        if (roomTypeId == null || checkinDate == null || checkinDate.isEmpty() || checkoutDate == null || checkoutDate.isEmpty() ||
+                price == null || finalPrice == null || paymentStatus == null || paymentStatus.isEmpty() || hasCheckedIn == null || hasCheckedOut == null) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Booking");
+            return;
+        }
         Booking newBooking = new Booking(
                 0, customerId, roomTypeId, checkinDate, checkoutDate,
                 price, voucherId, finalPrice, paymentStatus,
-                hasCheckedIn != null && hasCheckedIn ? 1 : 0, hasCheckedOut != null && hasCheckedOut ? 1 : 0
+                hasCheckedIn ? 1 : 0, hasCheckedOut ? 1 : 0
         );
 
-        if (customerService.addBookingForCustomer(customerId, newBooking)) {
+        if (bookingDAO.addBooking(newBooking)) {
             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Booking added successfully for customer " + customerId);
         } else {
-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add booking or invalid data. Check required fields.");
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add booking or invalid data");
         }
     }
 
@@ -191,15 +212,23 @@ public class CustomerHandler implements HttpHandler {
         String title = (String) reqJsonMap.get("title");
         String content = (String) reqJsonMap.get("content");
 
+        if (star == null || title == null || title.isEmpty() || content == null || content.isEmpty()) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Review");
+            return;
+        }
+
+        if (star < 1 || star > 5) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Star rating must be between 1 and 5");
+            return;
+        }
         Review newReview = new Review(bookingId, star, title, content);
 
-        if (customerService.addReviewForBooking(bookingId, newReview)) {
+        if (reviewDAO.addReview(newReview)) {
             res.sendSuccess(HttpURLConnection.HTTP_CREATED, "Review added successfully for booking " + bookingId);
         } else {
-            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add review or invalid data. Check required fields and star rating.");
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to add review or invalid data");
         }
     }
-
 
     private void handleUpdateCustomer(Request req, Response res) throws IOException {
         int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), "/customers/(\\d+)");
@@ -212,31 +241,41 @@ public class CustomerHandler implements HttpHandler {
         String email = (String) reqJsonMap.get("email");
         String phone = (String) reqJsonMap.get("phone");
 
+        if (name == null || name.isEmpty() || email == null || email.isEmpty() || phone == null || phone.isEmpty()) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Missing required fields for Customer update");
+            return;
+        }
+
+        if (!email.matches("^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid email format");
+            return;
+        }
+
+        if (!phone.matches("^\\+?[0-9\\s\\-]+$")) {
+            res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid phone number format");
+            return;
+        }
         Customer updatedCustomer = new Customer(id, name, email, phone);
 
-        if (customerService.updateCustomer(updatedCustomer)) {
+        if (customerDAO.updateCustomer(updatedCustomer)) {
             res.sendSuccess(HttpURLConnection.HTTP_OK, "Customer updated successfully");
         } else {
-            if (customerService.getCustomerById(id) == null) {
-                res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Customer not found");
-            } else {
-                res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to update customer. Check provided data.");
-            }
+            res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Customer not found or failed to update");
         }
     }
 
     private void handleDeleteCustomer(Request req, Response res) throws IOException {
         int id = extractIdFromPath(req.getHttpExchange().getRequestURI().getPath(), "/customers/(\\d+)");
+
         if (id == -1) {
             res.sendError(HttpURLConnection.HTTP_BAD_REQUEST, "Invalid Customer ID");
             return;
         }
 
-        if (customerService.deleteCustomer(id)) {
+        if (customerDAO.deleteCustomer(id)) {
             res.sendSuccess(HttpURLConnection.HTTP_OK, "Customer deleted successfully");
         } else {
             res.sendError(HttpURLConnection.HTTP_NOT_FOUND, "Customer not found or failed to delete");
         }
     }
 }
-

@@ -15,6 +15,7 @@ public class CustomerService {
     private final BookingDAO bookingDAO;
     private final ReviewDAO reviewDAO;
 
+    // Konstruktor untuk menginject DAO
     public CustomerService(CustomerDAO customerDAO, BookingDAO bookingDAO, ReviewDAO reviewDAO) {
         this.customerDAO = customerDAO;
         this.bookingDAO = bookingDAO;
@@ -38,6 +39,7 @@ public class CustomerService {
     }
 
     public boolean addCustomer(Customer customer) {
+        // Logika bisnis dan validasi untuk menambahkan pelanggan
         if (customer.getName() == null || customer.getName().isEmpty() ||
                 customer.getEmail() == null || customer.getEmail().isEmpty() ||
                 customer.getPhone() == null || customer.getPhone().isEmpty()) {
@@ -56,6 +58,7 @@ public class CustomerService {
     }
 
     public boolean updateCustomer(Customer customer) {
+        // Logika bisnis dan validasi untuk memperbarui pelanggan
         if (customer.getName() == null || customer.getName().isEmpty() ||
                 customer.getEmail() == null || customer.getEmail().isEmpty() ||
                 customer.getPhone() == null || customer.getPhone().isEmpty()) {
@@ -78,12 +81,16 @@ public class CustomerService {
     }
 
     public boolean addBookingForCustomer(int customerId, Booking booking) {
+        // Validasi dan logika bisnis untuk penambahan booking
+        // Hapus pemeriksaan `== null` untuk tipe primitif (roomTypeId, price, finalPrice, hasCheckedIn, hasCheckedOut)
         if (booking.getCheckinDate() == null || booking.getCheckinDate().isEmpty() ||
                 booking.getCheckoutDate() == null || booking.getCheckoutDate().isEmpty() ||
                 booking.getPaymentStatus() == null || booking.getPaymentStatus().isEmpty()) {
             System.err.println("Validation Error: Missing required string fields for Booking");
             return false;
         }
+        // Jika roomTypeId, price, finalPrice diharapkan memiliki nilai > 0 atau tidak sama dengan nilai "kosong" tertentu,
+        // lakukan validasi numerik, bukan null check.
         if (booking.getRoomTypeId() <= 0 || booking.getPrice() <= 0 || booking.getFinalPrice() <= 0) {
             System.err.println("Validation Error: roomTypeId, price, or finalPrice must be positive for Booking");
             return false;
@@ -94,6 +101,8 @@ public class CustomerService {
     }
 
     public boolean addReviewForBooking(int bookingId, Review review) {
+        // Validasi dan logika bisnis untuk penambahan review
+        // Hapus pemeriksaan `== null` untuk tipe primitif (star)
         if (review.getTitle() == null || review.getTitle().isEmpty() ||
                 review.getContent() == null || review.getContent().isEmpty()) {
             System.err.println("Validation Error: Missing required string fields for Review");
@@ -107,4 +116,3 @@ public class CustomerService {
         return reviewDAO.addReview(review);
     }
 }
-
