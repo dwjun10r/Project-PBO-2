@@ -19,7 +19,7 @@ public class BookingDAO {
         String sql = "SELECT b.* FROM bookings b JOIN room_types rt ON b.room_type = rt.id WHERE rt.villa = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, villaId);
+            pstmt.setInt(2, villaId);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {

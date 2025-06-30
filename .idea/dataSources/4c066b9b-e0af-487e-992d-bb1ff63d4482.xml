@@ -499,7 +499,7 @@
     </routine>
     <schema id="191" parent="1" name="main">
       <Current>1</Current>
-      <LastIntrospectionLocalTimestamp>2025-06-25.03:33:23</LastIntrospectionLocalTimestamp>
+      <LastIntrospectionLocalTimestamp>2025-06-30.13:05:11</LastIntrospectionLocalTimestamp>
     </schema>
     <argument id="192" parent="16">
       <ArgumentDirection>R</ArgumentDirection>
@@ -1612,39 +1612,34 @@
       <StoredType>INTEGER|0s</StoredType>
     </column>
     <column id="565" parent="555" name="checkin_date">
-      <NotNull>1</NotNull>
       <Position>4</Position>
       <StoredType>TEXT|0s</StoredType>
     </column>
     <column id="566" parent="555" name="checkout_date">
-      <NotNull>1</NotNull>
       <Position>5</Position>
       <StoredType>TEXT|0s</StoredType>
     </column>
     <column id="567" parent="555" name="price">
       <Position>6</Position>
-      <StoredType>INTEGER|0s</StoredType>
+      <StoredType>REAL|0s</StoredType>
     </column>
     <column id="568" parent="555" name="voucher">
       <Position>7</Position>
-      <StoredType>INTEGER|0s</StoredType>
+      <StoredType>TEXT|0s</StoredType>
     </column>
     <column id="569" parent="555" name="final_price">
       <Position>8</Position>
-      <StoredType>INTEGER|0s</StoredType>
+      <StoredType>REAL|0s</StoredType>
     </column>
     <column id="570" parent="555" name="payment_status">
-      <DefaultExpression>&apos;waiting&apos;</DefaultExpression>
       <Position>9</Position>
       <StoredType>TEXT|0s</StoredType>
     </column>
     <column id="571" parent="555" name="has_checkedin">
-      <DefaultExpression>0</DefaultExpression>
       <Position>10</Position>
       <StoredType>INTEGER|0s</StoredType>
     </column>
     <column id="572" parent="555" name="has_checkedout">
-      <DefaultExpression>0</DefaultExpression>
       <Position>11</Position>
       <StoredType>INTEGER|0s</StoredType>
     </column>
