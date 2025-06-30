@@ -1,2 +1,2 @@
-# Project-PBO-2
-Pembuatan API Pemesanan Vila Sederhana Berbasis Java
+# 🏠Project-PBO-2
+API Pemesanan Vila ini dikembangkan untuk mempermudah pengelolaan data vila, customer, dan booking secara terintegrasi. API ini memungkinkan pengguna untuk melakukan operasi CRUD (Create, Read, Update, Delete) terhadap entitas, dengan validasi dan error handling yang sesuai standar. Setiap permintaan dan respons menggunakan format JSON, dan API diamankan menggunakan API key. Proyek ini menggunakan database SQLite untuk menyimpan data dan diuji menggunakan Postman.
