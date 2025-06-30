@@ -28,3 +28,44 @@ Adapun fitur yang terdapat dalam projek API pemesanan vila, yaitu:
 - Customers  
 - Reviews  
 - Room_types  
+
+---
+
+# 📌 Endpoint API
+
+### 🏠 Villa
+| Metode | Endpoint | Deskripsi |
+| --- | --- | --- |
+| GET | /villas | Daftar semua vila |
+| GET | /villas/{id} | Informasi detail suatu vila |
+| GET | /villas/{id}/rooms | Informasi kamar suatu vila, lengkap dengan fasilitas dan harga |
+| GET | /villas/{id}/bookings | Daftar semua booking pada suatu vila |
+| GET | /villas/{id}/reviews | Daftar semua review pada suatu vila |
+| GET | /villas?ci_date={checkin_date}&co_date={checkout_date} | Pencarian ketersediaan vila berdasarkan tanggal check-in dan checkout |
+| POST | /villas | Menambahkan data vila |
+| POST | /villas/{id}/rooms | Menambahkan tipe kamar pada vila |
+| PUT | /villas/{id} | Mengubah data suatu vila |
+| PUT | /villas/{id}/rooms/{id} | Mengubah informasi kamar suatu vila |
+| DELETE | /villas/{id}/rooms/{id} | Menghapus kamar suatu vila |
+| DELETE | /villas/{id} | Menghapus data suatu vila |
+
+### 👤 Customer
+| Metode | Endpoint | Deskripsi |
+| --- | --- | --- |
+| GET | /customers | Daftar semua customer |
+| GET | /customers/{id} | Informasi detail seorang customer |
+| GET | /customers/{id}/bookings | Daftar booking yang telah dilakukan oleh seorang customer |
+| GET | /customers/{id}/reviews | Daftar ulasan yang telah diberikan oleh customer |
+| POST | /customers | Menambahkan customer baru (registrasi customer) |
+| POST | /customers/{id}/bookings | Customer melakukan pemesanan vila |
+| POST | /customers/{id}/bookings/{id}/reviews | Customer memberikan ulasan pada vila (berdasarkan informasi booking) |
+| PUT | /customers/{id} | Mengubah data seorang customer |
+
+### 🎟 Voucher
+| Metode | Endpoint | Deskripsi |
+| --- | --- | --- |
+| GET | /vouchers | Daftar semua voucher |
+| GET | /vouchers/{id} | Informasi detail suatu voucher |
+| POST | /vouchers | Membuat voucher baru |
+| PUT | /vouchers/{id} | Mengubah data suatu voucher |
+| DELETE | /vouchers/{id} | Menghapus data suatu voucher |
