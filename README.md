@@ -21,3 +21,10 @@ Adapun fitur yang terdapat dalam projek API pemesanan vila, yaitu:
 
 ---
 
+# 📦Entitas Database
+- Villas  
+- Vouchers  
+- Bookings  
+- Customers  
+- Reviews  
+- Room_types  
