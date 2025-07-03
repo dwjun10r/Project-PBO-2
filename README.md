@@ -104,4 +104,59 @@ Menghapus vila berdasarkan ID.
 ## Berikut Screenshoot penggunaan POST MAN
 
 ### Villa
+GET VILLA   
+
+<img src="Gambar/villas.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menampilkan semua data villa yang tersedia.
+
+---
+
+<img src="Gambar/villas{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menampilkan data villa berdasarkan id villa.
+
+---
+
+<img src="Gambar/villas{id}-rooms.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menampilkan data suatu villa berdasarkan id dan menampilkan informasi kamar suatau villa, lengkap dengan fasilitas dan harga.
+
+---
+
+<img src="Gambar/villas{id}-reviews.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menampilkan daftar semua review pada suatu villa.
+
+---
+
+<img src="Gambar/villas-date-get.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menampilkan pencarian ketersediaan villa berdasarkan tanggal check-in dan check-out.
+
+---
+
+<img src="Gambar/post-villa.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menambahkan data villa.
+
+---
+
+<img src="Gambar/post-villa{id}-rooms.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menambahkan data tipe kamar pada villa.
+
+---
+
+<img src="Gambar/put-villa{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk mengubah data suatu villa berdasarkan id.
+
+---
+
+<img src="Gambar/put-villa{id}-room{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk mengubah informasi kamar suatu villa.
+
+---
+
+<img src="Gambar/delete-villa{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menghapus data suatu villa.
+
+---
+
+<img src="Gambar/delete-villa{id}-room{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menghapus kamar suatu villa.
+
 
