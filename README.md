@@ -103,7 +103,7 @@ Menghapus vila berdasarkan ID.
 
 ## Berikut Screenshoot penggunaan POST MAN
 
-### Villa
+### 🏡Villa
 GET VILLA   
 
 <img src="Gambar/villas.jpg" width="700"/>
@@ -121,6 +121,11 @@ Gambar di atas merupakan tampilan Post Man untuk menampilkan data suatu villa be
 
 ---
 
+<img src="Gambar/villas{id}-bookings.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menampilkan daftar semau booking pada suatu villa.
+
+---
+
 <img src="Gambar/villas{id}-reviews.jpg" width="700"/>
 Gambar di atas merupakan tampilan Post Man untuk menampilkan daftar semua review pada suatu villa.
 
@@ -131,6 +136,8 @@ Gambar di atas merupakan tampilan Post Man untuk menampilkan pencarian ketersedi
 
 ---
 
+POST VILLA
+
 <img src="Gambar/post-villa.jpg" width="700"/>
 Gambar di atas merupakan tampilan Post Man untuk menambahkan data villa.
 
@@ -140,6 +147,7 @@ Gambar di atas merupakan tampilan Post Man untuk menambahkan data villa.
 Gambar di atas merupakan tampilan Post Man untuk menambahkan data tipe kamar pada villa.
 
 ---
+PUT VILLA
 
 <img src="Gambar/put-villa{id}.jpg" width="700"/>
 Gambar di atas merupakan tampilan Post Man untuk mengubah data suatu villa berdasarkan id.
@@ -150,6 +158,7 @@ Gambar di atas merupakan tampilan Post Man untuk mengubah data suatu villa berda
 Gambar di atas merupakan tampilan Post Man untuk mengubah informasi kamar suatu villa.
 
 ---
+DELETE VILLA
 
 <img src="Gambar/delete-villa{id}.jpg" width="700"/>
 Gambar di atas merupakan tampilan Post Man untuk menghapus data suatu villa.
@@ -158,5 +167,81 @@ Gambar di atas merupakan tampilan Post Man untuk menghapus data suatu villa.
 
 <img src="Gambar/delete-villa{id}-room{id}.jpg" width="700"/>
 Gambar di atas merupakan tampilan Post Man untuk menghapus kamar suatu villa.
+
+---
+
+### 🧑‍🤝‍👩CUSTOMERS
+GET CUSTOMERS
+
+<img src="Gambar/get-customers.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk melihat daftar semua customer.
+
+---
+
+<img src="Gambar/get-customers{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk melihat informasi detail mengenai customer berdasarkan id.
+
+---
+
+<img src="Gambar/get-customers{id}-booking.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk melihat data daftar booking yang telah dilakukan oleh seorang customer.
+
+---
+
+<img src="Gambar/get-customers{id}-reviews.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk melihat data daftar ulasan yang telah diberikan oleh customer.
+
+---
+POST CUSTOMERS
+
+<img src="Gambar/post-customers.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menambahkan customer baru (registrasi customer).
+
+---
+
+<img src="Gambar/post-customer{id}-bookings.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk customer melakukan pemesanan villa.
+
+---
+
+<img src="Gambar/post-customer{id}-bookings{id}-reviews.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk customer memberikan ulasan pada vila (berdasarkan informasi booking).
+
+---
+PUT CUSTOMERS
+
+<img src="Gambar/put-customers{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk mengubah data customer berdasarkan id.
+
+---
+### 📜VOUCHER
+GET VOUCHERS
+
+<img src="Gambar/get-vouchers.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk melihat data semua voucher.
+
+---
+
+<img src="Gambar/get-vouchers{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk melihat informasi detail mengenai voucher berdasarkan id.
+
+---
+POST VOUCHERS
+
+<img src="Gambar/post-vouchers.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk membuat atau menambahkan voucher baru.
+
+---
+PUT VOUCHERS
+
+<img src="Gambar/put-vouchers{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk mengubah data suatu voucher berdasarkan id.
+
+---
+DELETE VOUCHERS
+
+<img src="Gambar/delete-vouchers{id}.jpg" width="700"/>
+Gambar di atas merupakan tampilan Post Man untuk menghapus suatu data voucher berdasarkan id.
+
 
 
