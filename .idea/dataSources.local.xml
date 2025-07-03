@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="dataSourceStorageLocal" created-in="IU-243.26053.27">
+  <component name="dataSourceStorageLocal" created-in="IU-243.25659.59">
     <data-source name="villa" uuid="4b52b867-36e5-4b66-85ed-f27683d2fc13">
-      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" />
+      <database-info product="SQLite" version="3.45.1" jdbc-version="4.2" driver-name="SQLite JDBC" driver-version="3.45.1.0" dbms="SQLITE" exact-version="3.45.1" exact-driver-version="3.45">
+        <identifier-quote-string>&quot;</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="mixed" quoted-identifiers="mixed" />
       <schema-mapping />
     </data-source>
     <data-source name="villa [2]" uuid="4c066b9b-e0af-487e-992d-bb1ff63d4482">

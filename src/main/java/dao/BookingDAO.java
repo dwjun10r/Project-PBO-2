@@ -15,11 +15,12 @@ public class BookingDAO {
 
     // -------------- Endpoint baru: Daftar semua booking pada suatu vila (GET /villas/{id}/bookings) --------------
     public List<Booking> getBookingsByVillaId(int villaId) {
+
         List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT b.* FROM bookings b JOIN room_types rt ON b.room_type = rt.id WHERE rt.villa = ?";
         try (Connection conn = DbConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(2, villaId);
+            pstmt.setInt(1, villaId);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -30,7 +31,8 @@ public class BookingDAO {
                         rs.getString("checkin_date"),
                         rs.getString("checkout_date"),
                         rs.getInt("price"),
-                        rs.getObject("voucher", Integer.class), // Handle nullable voucher
+rs.getString("voucher"),
+//                        rs.getObject("voucher", Integer.class), // Handle nullable voucher
                         rs.getInt("final_price"),
                         rs.getString("payment_status"),
                         rs.getInt("has_checkedin"),
@@ -38,6 +40,7 @@ public class BookingDAO {
                 ));
             }
         } catch (SQLException e) {
+            e.printStackTrace();
             System.err.println("Error getting bookings by villa ID: " + e.getMessage());
         }
         return bookings;
@@ -60,7 +63,8 @@ public class BookingDAO {
                         rs.getString("checkin_date"),
                         rs.getString("checkout_date"),
                         rs.getInt("price"),
-                        rs.getObject("voucher", Integer.class), // Handle nullable voucher
+                        rs.getString("voucher"),
+//                        rs.getObject("voucher", Integer.class), // Handle nullable voucher
                         rs.getInt("final_price"),
                         rs.getString("payment_status"),
                         rs.getInt("has_checkedin"),
@@ -86,7 +90,7 @@ public class BookingDAO {
             pstmt.setString(4, booking.getCheckoutDate());
             pstmt.setInt(5, booking.getPrice());
             if (booking.getVoucherId() != null) {
-                pstmt.setInt(6, booking.getVoucherId());
+                pstmt.setString(6, booking.getVoucherId());
             } else {
                 pstmt.setNull(6, java.sql.Types.INTEGER);
             }
@@ -117,7 +121,8 @@ public class BookingDAO {
                         rs.getString("checkin_date"),
                         rs.getString("checkout_date"),
                         rs.getInt("price"),
-                        rs.getObject("voucher", Integer.class),
+                        rs.getString("voucher"),
+//                        rs.getObject("voucher", Integer.class),
                         rs.getInt("final_price"),
                         rs.getString("payment_status"),
                         rs.getInt("has_checkedin"),

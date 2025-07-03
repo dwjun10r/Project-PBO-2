@@ -7,7 +7,7 @@ public class Booking {
     private String checkinDate;
     private String checkoutDate;
     private int price;
-    private Integer voucherId;
+    private String voucherId;
     private int finalPrice;
     private String paymentStatus;
     private boolean hasCheckedIn;
@@ -16,7 +16,7 @@ public class Booking {
 
     //---------------Start Constructor untuk data dari DB (dengan ID)----------------
     public Booking(int id, int customerId, int roomTypeId, String checkinDate, String checkoutDate,
-                   int price, Integer voucherId, int finalPrice, String paymentStatus,
+                   int price, String voucherId, int finalPrice, String paymentStatus,
                    int hasCheckedIn, int hasCheckedOut) {
         this.id = id;
         this.customerId = customerId;
@@ -54,8 +54,8 @@ public class Booking {
     public int getPrice() { return price; }
     public void setPrice(int price) { this.price = price; }
 
-    public Integer getVoucherId() { return voucherId; }
-    public void setVoucherId(Integer voucherId) { this.voucherId = voucherId; }
+    public String getVoucherId() { return voucherId; }
+    public void setVoucherId(String voucherId) { this.voucherId = voucherId; }
 
     public int getFinalPrice() { return finalPrice; }
     public void setFinalPrice(int finalPrice) { this.finalPrice = finalPrice; }

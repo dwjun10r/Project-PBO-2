@@ -170,7 +170,7 @@ public class CustomerHandler implements HttpHandler {
         String checkinDate = (String) reqJsonMap.get("checkinDate");
         String checkoutDate = (String) reqJsonMap.get("checkoutDate");
         Integer price = (Integer) reqJsonMap.get("price");
-        Integer voucherId = (Integer) reqJsonMap.get("voucherId");
+        String voucherId = (String) reqJsonMap.get("voucherId");
         Integer finalPrice = (Integer) reqJsonMap.get("finalPrice");
         String paymentStatus = (String) reqJsonMap.get("paymentStatus");
         Boolean hasCheckedIn = (Boolean) reqJsonMap.get("hasCheckedIn");

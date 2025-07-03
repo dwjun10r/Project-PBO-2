@@ -1,9 +1,0 @@
-<changelist name="Uncommitted_changes_before_Update_at_6_25_2025_11_42_AM_[Changes]" date="1750822970248" recycled="true" deleted="true">
-  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_6_25_2025_11_42_AM_[Changes]/shelved.patch" />
-  <option name="DESCRIPTION" value="Uncommitted changes before Update at 6/25/2025 11:42 AM [Changes]" />
-  <binary>
-    <option name="BEFORE_PATH" value="src/main/resources/database/villa.db" />
-    <option name="AFTER_PATH" value="src/main/resources/database/villa.db" />
-    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_6_25_2025_11_42_AM_[Changes]/villa.db" />
-  </binary>
-</changelist>
