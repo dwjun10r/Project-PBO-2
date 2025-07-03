@@ -69,3 +69,39 @@ Adapun fitur yang terdapat dalam projek API pemesanan vila, yaitu:
 | POST | /vouchers | Membuat voucher baru |
 | PUT | /vouchers/{id} | Mengubah data suatu voucher |
 | DELETE | /vouchers/{id} | Menghapus data suatu voucher |
+
+---
+
+# 🔍Cara Mencoba API dengan Postman
+Untuk menguji dan mencoba endpoint dari API ini, Anda dapat menggunakan Postman, sebuah aplikasi yang memudahkan pengiriman permintaan HTTP.
+
+Berikut adalah metode yang tersedia:
+
+## 📥 GET
+Digunakan untuk mengambil data dari server.
+Contoh:
+GET /villas
+Menampilkan daftar semua vila.
+
+## ➕ POST
+Digunakan untuk menambahkan data baru ke server.
+Contoh:
+POST /villas
+Menambahkan vila baru dengan data yang dikirim melalui body (format JSON).
+
+## ✏️ PUT
+Digunakan untuk mengubah data yang sudah ada.
+Contoh:
+PUT /villas/{id}
+Memperbarui informasi vila berdasarkan ID yang diberikan.
+
+## ❌ DELETE
+Digunakan untuk menghapus data dari server.
+Contoh:
+DELETE /villas/{id}
+Menghapus vila berdasarkan ID.
+
+## Berikut Screenshoot penggunaan POST MAN
+
+### Villa
+
