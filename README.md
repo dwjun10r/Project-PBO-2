@@ -199,12 +199,12 @@ Gambar di atas merupakan tampilan Post Man untuk menambahkan customer baru (regi
 
 ---
 
-<img src="Gambar/post-customer{id}-bookings.jpg" width="700"/>
+<img src="Gambar/post-customers{id}-bookings.jpg" width="700"/>
 Gambar di atas merupakan tampilan Post Man untuk customer melakukan pemesanan villa.
 
 ---
 
-<img src="Gambar/post-customer{id}-bookings{id}-reviews.jpg" width="700"/>
+<img src="Gambar/post-customers{id}-bookings{id}-reviews.jpg" width="700"/>
 Gambar di atas merupakan tampilan Post Man untuk customer memberikan ulasan pada vila (berdasarkan informasi booking).
 
 ---
